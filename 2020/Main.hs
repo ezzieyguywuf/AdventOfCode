@@ -1,6 +1,6 @@
 module Main (main) where
 
-import Day1 (day1Main)
+import Day2 (runMain)
 
 main :: IO ()
-main = putStrLn "Hello AOC!" >> day1Main
+main = putStrLn "Hello AOC!" >> runMain

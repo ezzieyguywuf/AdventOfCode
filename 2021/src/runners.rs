@@ -39,7 +39,7 @@ pub fn run_day_01a() -> io::Result<()> {
 }
 
 pub fn run_day_01b() -> io::Result<()> {
-  let data = file_to_ints("src/02_input.txt")?;
+  let data = file_to_ints("src/01_input.txt")?;
 
   let mut count = 0;
   let mut prev = data[0] + data[1] + data[2];
@@ -52,10 +52,6 @@ pub fn run_day_01b() -> io::Result<()> {
         count = count + 1;
       }
 
-      println!(
-        "For i = {}, prev = {}, cur = {}, count = {}",
-        i, prev, cur, count
-      );
       prev = cur;
     }
   }

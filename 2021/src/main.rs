@@ -1,5 +1,9 @@
 mod runners;
 
-fn main() {
-    runners::run_day_01();
+use std::io;
+
+fn main() -> io::Result<()> {
+    runners::run_day_01()?;
+
+    Ok(())
 }

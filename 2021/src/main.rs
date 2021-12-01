@@ -1,3 +1,5 @@
+mod runners;
+
 fn main() {
-    println!("Hello, world!");
+    runners::run_day_01();
 }

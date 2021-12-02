@@ -132,3 +132,30 @@ pub fn run_day_02a() -> io::Result<()> {
   );
   Ok(())
 }
+
+pub fn run_day_02b() -> io::Result<()> {
+  let data = file_to_vec("src/02_input.txt", make_direction)?;
+  let mut pos = 0;
+  let mut depth = 0;
+  let mut aim = 0;
+
+  for movement in data {
+    match movement.dir {
+      Direction::Forward => {
+        pos = pos + movement.amt;
+        depth = depth + aim * movement.amt;
+      }
+      Direction::Up => aim = aim - movement.amt,
+      Direction::Down => aim = aim + movement.amt,
+    }
+  }
+
+  println!(
+    "Day 02b: pos = {}, depth = {}, aim = {}, ans = {}",
+    pos,
+    depth,
+    aim,
+    pos * depth
+  );
+  Ok(())
+}

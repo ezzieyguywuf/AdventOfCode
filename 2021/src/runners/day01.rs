@@ -1,7 +1,7 @@
 use advent_of_code::util::*;
 
 pub fn run_a() -> io::Result<()> {
-  let data = file_to_ints("src/01_input.txt")?;
+  let data = file_to_ints("data/01_input.txt")?;
 
   let mut count = 0;
   let mut prev = data[0];
@@ -23,7 +23,7 @@ pub fn run_a() -> io::Result<()> {
 }
 
 pub fn run_b() -> io::Result<()> {
-  let data = file_to_ints("src/01_input.txt")?;
+  let data = file_to_ints("data/01_input.txt")?;
 
   let mut count = 0;
   let mut prev = data[0] + data[1] + data[2];

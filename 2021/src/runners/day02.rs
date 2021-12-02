@@ -38,7 +38,7 @@ fn make_direction(input: &str) -> SubmarineMovement {
 }
 
 pub fn run_a() -> io::Result<()> {
-  let data = file_to_vec("src/02_input.txt", make_direction)?;
+  let data = file_to_vec("data/02_input.txt", make_direction)?;
   let mut pos = 0;
   let mut depth = 0;
 
@@ -60,7 +60,7 @@ pub fn run_a() -> io::Result<()> {
 }
 
 pub fn run_b() -> io::Result<()> {
-  let data = file_to_vec("src/02_input.txt", make_direction)?;
+  let data = file_to_vec("data/02_input.txt", make_direction)?;
   let mut pos = 0;
   let mut depth = 0;
   let mut aim = 0;

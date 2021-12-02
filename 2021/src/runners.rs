@@ -16,7 +16,7 @@ where
 fn file_to_ints(fname: &str) -> io::Result<Vec<i32>> {
   file_to_vec(fname, |x| {
     x.parse::<i32>()
-      .expect(format!("Unable to parse value into integer: {}", x).as_str())
+      .unwrap_or_else(|_| panic!("Unable to parse value into integer: {}", x))
   })
 }
 
@@ -28,7 +28,7 @@ pub fn run_day_01a() -> io::Result<()> {
 
   for val in &data[1..] {
     if *val > prev {
-      count = count + 1;
+      count += 1;
     }
 
     prev = *val;
@@ -53,7 +53,7 @@ pub fn run_day_01b() -> io::Result<()> {
     if i + 2 < sub.len() {
       let cur = val + sub[i + 1] + sub[i + 2];
       if cur > prev {
-        count = count + 1;
+        count += 1;
       }
 
       prev = cur;
@@ -82,31 +82,25 @@ struct SubmarineMovement {
 fn make_direction(input: &str) -> SubmarineMovement {
   let (raw_dir, raw_amt) = input
     .split_once(' ')
-    .expect(format!("Unable to split the string {}", input).as_str());
+    .unwrap_or_else(|| panic!("Unable to split the string {}", input));
 
   let amt = raw_amt
     .parse::<i32>()
-    .expect(format!("Unable to parse {} int an i32", raw_amt).as_str());
+    .unwrap_or_else(|_| panic!("Unable to parse {} int an i32", raw_amt));
 
   match raw_dir {
-    "forward" => {
-      return SubmarineMovement {
-        dir: Direction::Forward,
-        amt: amt,
-      }
-    }
-    "down" => {
-      return SubmarineMovement {
-        dir: Direction::Down,
-        amt: amt,
-      }
-    }
-    "up" => {
-      return SubmarineMovement {
-        dir: Direction::Up,
-        amt: amt,
-      }
-    }
+    "forward" => SubmarineMovement {
+      dir: Direction::Forward,
+      amt,
+    },
+    "down" => SubmarineMovement {
+      dir: Direction::Down,
+      amt,
+    },
+    "up" => SubmarineMovement {
+      dir: Direction::Up,
+      amt,
+    },
     _ => panic!("I do not know about the {} direction", raw_dir),
   }
 }
@@ -118,9 +112,9 @@ pub fn run_day_02a() -> io::Result<()> {
 
   for movement in data {
     match movement.dir {
-      Direction::Forward => pos = pos + movement.amt,
-      Direction::Up => depth = depth - movement.amt,
-      Direction::Down => depth = depth + movement.amt,
+      Direction::Forward => pos += movement.amt,
+      Direction::Up => depth -= movement.amt,
+      Direction::Down => depth += movement.amt,
     }
   }
 
@@ -142,11 +136,11 @@ pub fn run_day_02b() -> io::Result<()> {
   for movement in data {
     match movement.dir {
       Direction::Forward => {
-        pos = pos + movement.amt;
-        depth = depth + aim * movement.amt;
+        pos += movement.amt;
+        depth += aim * movement.amt;
       }
-      Direction::Up => aim = aim - movement.amt,
-      Direction::Down => aim = aim + movement.amt,
+      Direction::Up => aim -= movement.amt,
+      Direction::Down => aim += movement.amt,
     }
   }
 

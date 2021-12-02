@@ -67,3 +67,68 @@ pub fn run_day_01b() -> io::Result<()> {
 
   Ok(())
 }
+
+enum Direction {
+  Forward,
+  Up,
+  Down,
+}
+
+struct SubmarineMovement {
+  dir: Direction,
+  amt: i32,
+}
+
+fn make_direction(input: &str) -> SubmarineMovement {
+  let (raw_dir, raw_amt) = input
+    .split_once(' ')
+    .expect(format!("Unable to split the string {}", input).as_str());
+
+  let amt = raw_amt
+    .parse::<i32>()
+    .expect(format!("Unable to parse {} int an i32", raw_amt).as_str());
+
+  match raw_dir {
+    "forward" => {
+      return SubmarineMovement {
+        dir: Direction::Forward,
+        amt: amt,
+      }
+    }
+    "down" => {
+      return SubmarineMovement {
+        dir: Direction::Down,
+        amt: amt,
+      }
+    }
+    "up" => {
+      return SubmarineMovement {
+        dir: Direction::Up,
+        amt: amt,
+      }
+    }
+    _ => panic!("I do not know about the {} direction", raw_dir),
+  }
+}
+
+pub fn run_day_02a() -> io::Result<()> {
+  let data = file_to_vec("src/02_input.txt", make_direction)?;
+  let mut pos = 0;
+  let mut depth = 0;
+
+  for movement in data {
+    match movement.dir {
+      Direction::Forward => pos = pos + movement.amt,
+      Direction::Up => depth = depth - movement.amt,
+      Direction::Down => depth = depth + movement.amt,
+    }
+  }
+
+  println!(
+    "Day 02a: pos = {}, depth = {}, ans = {}",
+    pos,
+    depth,
+    pos * depth
+  );
+  Ok(())
+}

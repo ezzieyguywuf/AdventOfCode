@@ -1,19 +1,23 @@
 use std::{fs, io};
 
-fn file_to_ints(fname: &str) -> io::Result<std::vec::Vec<i32>> {
-  let file_data = fs::read_to_string(fname)?;
-  let lines = file_data.lines().map(|val| {
-    val
-      .parse::<i32>()
-      .expect(format!("Unable to parse value into integer: {}", val).as_str())
-  });
+fn file_to_vec<F, T>(fname: &str, f: F) -> io::Result<std::vec::Vec<T>>
+where
+  F: Fn(&str) -> T,
+{
   let mut out = std::vec::Vec::new();
 
-  for val in lines {
+  for val in fs::read_to_string(fname)?.lines().map(f) {
     out.push(val);
   }
 
-  return Ok(out);
+  Ok(out)
+}
+
+fn file_to_ints(fname: &str) -> io::Result<std::vec::Vec<i32>> {
+  file_to_vec(fname, |x| {
+    x.parse::<i32>()
+      .expect(format!("Unable to parse value into integer: {}", x).as_str())
+  })
 }
 
 pub fn run_day_01a() -> io::Result<()> {

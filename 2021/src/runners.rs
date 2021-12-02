@@ -1,10 +1,10 @@
 use std::{fs, io};
 
-fn file_to_vec<F, T>(fname: &str, f: F) -> io::Result<std::vec::Vec<T>>
+fn file_to_vec<F, T>(fname: &str, f: F) -> io::Result<Vec<T>>
 where
   F: Fn(&str) -> T,
 {
-  let mut out = std::vec::Vec::new();
+  let mut out = Vec::new();
 
   for val in fs::read_to_string(fname)?.lines().map(f) {
     out.push(val);
@@ -13,7 +13,7 @@ where
   Ok(out)
 }
 
-fn file_to_ints(fname: &str) -> io::Result<std::vec::Vec<i32>> {
+fn file_to_ints(fname: &str) -> io::Result<Vec<i32>> {
   file_to_vec(fname, |x| {
     x.parse::<i32>()
       .expect(format!("Unable to parse value into integer: {}", x).as_str())

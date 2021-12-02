@@ -1,66 +1,4 @@
-use std::{fs, io};
-
-fn file_to_vec<F, T>(fname: &str, f: F) -> io::Result<Vec<T>>
-where
-  F: Fn(&str) -> T,
-{
-  Ok(fs::read_to_string(fname)?.lines().map(f).collect())
-}
-
-fn file_to_ints(fname: &str) -> io::Result<Vec<i32>> {
-  file_to_vec(fname, |x| {
-    x.parse::<i32>()
-      .unwrap_or_else(|_| panic!("Unable to parse value into integer: {}", x))
-  })
-}
-
-pub fn run_day_01a() -> io::Result<()> {
-  let data = file_to_ints("src/01_input.txt")?;
-
-  let mut count = 0;
-  let mut prev = data[0];
-
-  for val in &data[1..] {
-    if *val > prev {
-      count += 1;
-    }
-
-    prev = *val;
-  }
-
-  println!(
-    "Day 01a: There were {} measurements greater than the previous",
-    count
-  );
-
-  Ok(())
-}
-
-pub fn run_day_01b() -> io::Result<()> {
-  let data = file_to_ints("src/01_input.txt")?;
-
-  let mut count = 0;
-  let mut prev = data[0] + data[1] + data[2];
-  let sub = &data[1..];
-
-  for (i, val) in sub.iter().enumerate() {
-    if i + 2 < sub.len() {
-      let cur = val + sub[i + 1] + sub[i + 2];
-      if cur > prev {
-        count += 1;
-      }
-
-      prev = cur;
-    }
-  }
-
-  println!(
-    "Day 01b: There were {} windows greater than the previous",
-    count
-  );
-
-  Ok(())
-}
+use advent_of_code::util::*;
 
 enum Direction {
   Forward,
@@ -99,7 +37,7 @@ fn make_direction(input: &str) -> SubmarineMovement {
   }
 }
 
-pub fn run_day_02a() -> io::Result<()> {
+pub fn run_a() -> io::Result<()> {
   let data = file_to_vec("src/02_input.txt", make_direction)?;
   let mut pos = 0;
   let mut depth = 0;
@@ -121,7 +59,7 @@ pub fn run_day_02a() -> io::Result<()> {
   Ok(())
 }
 
-pub fn run_day_02b() -> io::Result<()> {
+pub fn run_b() -> io::Result<()> {
   let data = file_to_vec("src/02_input.txt", make_direction)?;
   let mut pos = 0;
   let mut depth = 0;

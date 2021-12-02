@@ -1,12 +1,11 @@
 mod runners;
-
 use std::io;
 
 fn main() -> io::Result<()> {
-  runners::run_day_01a()?;
-  runners::run_day_01b()?;
-  runners::run_day_02a()?;
-  runners::run_day_02b()?;
+  runners::day01::run_a()?;
+  runners::day01::run_b()?;
+  runners::day02::run_a()?;
+  runners::day02::run_b()?;
 
   Ok(())
 }

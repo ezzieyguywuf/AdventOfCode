@@ -1,7 +1,7 @@
 use advent_of_code::util::*;
 
-pub fn run_a() -> io::Result<()> {
-  let data = file_to_ints("data/01_input.txt")?;
+pub fn run_a() {
+  let data = file_to_ints("data/01_input.txt");
 
   let mut count = 0;
   let mut prev = data[0];
@@ -18,12 +18,10 @@ pub fn run_a() -> io::Result<()> {
     "Day 01a: There were {} measurements greater than the previous",
     count
   );
-
-  Ok(())
 }
 
-pub fn run_b() -> io::Result<()> {
-  let data = file_to_ints("data/01_input.txt")?;
+pub fn run_b() {
+  let data = file_to_ints("data/01_input.txt");
 
   let mut count = 0;
   let mut prev = data[0] + data[1] + data[2];
@@ -44,6 +42,4 @@ pub fn run_b() -> io::Result<()> {
     "Day 01b: There were {} windows greater than the previous",
     count
   );
-
-  Ok(())
 }

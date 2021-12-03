@@ -5,7 +5,7 @@ struct Column {
   ones: u32,
 }
 
-pub fn run_a() {
+fn get_columns() -> Vec<Column> {
   let lines = file_to_lines("data/03_input.txt");
   let mut columns: Vec<Column> = Vec::new();
 
@@ -25,6 +25,12 @@ pub fn run_a() {
     }
   }
 
+  columns
+}
+
+pub fn run_a() {
+  let columns = get_columns();
+
   let mut epsilon = 0;
   let mut gamma = 0;
 
@@ -40,6 +46,20 @@ pub fn run_a() {
 
   println!(
     "day03a: epsilon = {}, gamma = {}, ans = {}",
+    epsilon,
+    gamma,
+    epsilon * gamma
+  );
+}
+
+pub fn run_b() {
+  let _columns = get_columns();
+
+  let epsilon = 0;
+  let gamma = 0;
+
+  println!(
+    "day03b: epsilon = {}, gamma = {}, ans = {}",
     epsilon,
     gamma,
     epsilon * gamma

@@ -7,6 +7,7 @@ fn main() -> io::Result<()> {
   runners::day02::run_a();
   runners::day02::run_b();
   runners::day03::run_a();
+  runners::day03::run_b();
 
   Ok(())
 }

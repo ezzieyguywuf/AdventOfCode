@@ -1,7 +1,7 @@
 pub use std::{fs, io, io::BufRead, iter};
 
 pub fn file_to_lines(fname: &str) -> impl Iterator<Item = String> {
-  let file = fs::File::open(fname).unwrap_or_else(|e| panic!("{}: {}", e, fname));
+  let file = fs::File::open(fname).unwrap_or_else(|_| panic!("Unable to open file: {}", fname));
   io::BufReader::new(file)
     .lines()
     .map(|val| val.expect("Unable to read line from file"))

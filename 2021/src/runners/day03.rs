@@ -91,7 +91,7 @@ fn binary_text_to_int(input: &str) -> i32 {
     }
   }
 
-  return out;
+  out
 }
 
 pub fn run_b() {

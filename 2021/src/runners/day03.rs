@@ -10,6 +10,8 @@ pub fn run_a() {
   let mut columns: Vec<Column> = Vec::new();
 
   for line in lines {
+    // We reverse this so that the far-right column is the zeroeth column. This
+    // helps when we're calculating the binary value later
     for (col, c) in line.chars().rev().enumerate() {
       if columns.len() <= col {
         columns.push(Column { zeroes: 0, ones: 0 });
@@ -27,6 +29,8 @@ pub fn run_a() {
   let mut gamma = 0;
 
   for (col, Column { zeroes, ones }) in columns.iter().enumerate() {
+    // since the column refers to the "two"s place (per the reverse above), we
+    // can directly calculate how much to add
     if ones > zeroes {
       gamma += u32::pow(2, col.try_into().unwrap());
     } else {

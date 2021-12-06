@@ -21,7 +21,7 @@ impl fmt::Debug for Board {
       }
     }
 
-    f.write_str("")
+    Ok(())
   }
 }
 

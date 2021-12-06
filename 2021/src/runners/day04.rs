@@ -134,3 +134,32 @@ pub fn run_a() {
     }
   }
 }
+
+pub fn run_b() {
+  let mut lines = file_to_lines("data/04_input.txt").peekable();
+  let numbers = parse_numbers(&mut lines);
+
+  let mut boards: Vec<Option<Board>> = Vec::new();
+  while lines.peek() != None {
+    boards.push(Some(get_board(&mut lines)));
+  }
+
+  for number in numbers.iter() {
+    for maybe_board in &mut boards {
+      if let Some(board) = maybe_board {
+        update_board(board, *number);
+
+        if board_wins(&board) {
+          let sum = board
+            .data
+            .iter()
+            .map(|val| val.unwrap_or(0))
+            .fold(0, |a, b| a + b);
+          println!("sum = {}, number = {}, ans = {}", sum, number, sum * number);
+
+          maybe_board.take();
+        }
+      }
+    }
+  }
+}

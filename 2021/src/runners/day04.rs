@@ -1,9 +1,28 @@
 use advent_of_code::util::*;
-pub use std::iter;
+pub use std::{fmt, iter};
 
-#[derive(Debug)]
 struct Board {
-  data: Vec<u32>,
+  // None means the player has scored on that cell
+  data: Vec<Option<u32>>,
+}
+
+impl fmt::Debug for Board {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    for row in 0..5 {
+      for col in 0..5 {
+        let index = make_index(row, col);
+        match self.data[index] {
+          Some(val) => f.write_fmt(format_args!("{:^3}", val))?,
+          None => f.write_fmt(format_args!("{:^3}", "X"))?,
+        };
+        if col == 4 {
+          f.write_str("\n")?;
+        }
+      }
+    }
+
+    f.write_str("")
+  }
 }
 
 fn get_board(iter: &mut impl Iterator<Item = String>) -> Board {
@@ -19,7 +38,7 @@ fn get_board(iter: &mut impl Iterator<Item = String>) -> Board {
       });
 
       for item in parsed {
-        out.data.push(item);
+        out.data.push(Some(item));
       }
     }
   }
@@ -40,19 +59,78 @@ fn parse_numbers(iter: &mut impl Iterator<Item = String>) -> Vec<u32> {
     .collect::<Vec<u32>>()
 }
 
+fn update_board(board: &mut Board, val: u32) {
+  for number in &mut board.data {
+    if *number == Some(val) {
+      number.take();
+    }
+  }
+}
+
+fn make_index(row: usize, col: usize) -> usize {
+  row * 5 + col
+}
+
+fn column_wins(board: &Board, col: usize) -> bool {
+  for row in 0..5 {
+    let index = make_index(row, col);
+    if board.data[index].is_some() {
+      return false;
+    }
+  }
+
+  true
+}
+
+fn row_wins(board: &Board, row: usize) -> bool {
+  for col in 0..5 {
+    let index = make_index(row, col);
+    if board.data[index].is_some() {
+      return false;
+    }
+  }
+
+  true
+}
+
+fn board_wins(board: &Board) -> bool {
+  // first check columns
+  for col in 0..5 {
+    if column_wins(board, col) {
+      return true;
+    }
+  }
+
+  for row in 0..5 {
+    if row_wins(board, row) {
+      return true;
+    }
+  }
+
+  false
+}
+
 pub fn run_a() {
   let mut lines = file_to_lines("data/04_input.txt").peekable();
   let numbers = parse_numbers(&mut lines);
 
-  for number in numbers.iter().take(4) {
-    println!("Got number: {}", number);
-  }
-
   let mut boards: Vec<Board> = Vec::new();
   while lines.peek() != None {
-    let board = get_board(&mut lines);
-    boards.push(board);
+    boards.push(get_board(&mut lines));
   }
 
-  println!("Got boards: {:?}", boards);
+  for number in numbers.iter() {
+    for mut board in &mut boards {
+      update_board(&mut board, *number);
+      if board_wins(board) {
+        let sum = board
+          .data
+          .iter()
+          .map(|val| val.unwrap_or(0))
+          .fold(0, |a, b| a + b);
+        println!("sum = {}, number = {}, ans = {}", sum, number, sum * number);
+        return;
+      }
+    }
+  }
 }

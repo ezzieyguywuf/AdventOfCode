@@ -120,8 +120,8 @@ pub fn run_a() {
   }
 
   for number in numbers.iter() {
-    for mut board in &mut boards {
-      update_board(&mut board, *number);
+    for board in &mut boards {
+      update_board(board, *number);
       if board_wins(board) {
         let sum: u32 = board.data.iter().map(|val| val.unwrap_or(0)).sum();
         println!("sum = {}, number = {}, ans = {}", sum, number, sum * number);

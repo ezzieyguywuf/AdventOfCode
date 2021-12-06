@@ -1,17 +1,20 @@
 use advent_of_code::util::*;
+// use std::collections::HashMap;
 use std::num::ParseIntError;
 use std::str::FromStr;
 
 pub fn run_a() {
   let lines = file_to_lines("data/test.txt");
+  // let mut _map = HashMap::new();
 
-  for line in lines {
-    let points = line
-      .split("->")
-      .map(|val| val.trim().parse::<Point>().unwrap())
-      .collect::<Vec<_>>();
-    println!("{:?}", points);
-  }
+  lines
+    .map(|line| {
+      line
+        .split("->")
+        .map(|val| val.trim().parse::<Point>().unwrap())
+        .collect::<Vec<_>>()
+    })
+    .for_each(|points| println!("{:?}", points))
 }
 
 pub fn run_b() {

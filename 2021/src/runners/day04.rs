@@ -140,18 +140,26 @@ pub fn run_b() {
     boards.push(Some(get_board(&mut lines)));
   }
 
+  let mut winners: Vec<u32> = Vec::new();
+
   for number in numbers.iter() {
+    #[allow(clippy::manual_flatten)]
     for maybe_board in &mut boards {
       if let Some(board) = maybe_board {
         update_board(board, *number);
 
         if board_wins(board) {
           let sum: u32 = board.data.iter().map(|val| val.unwrap_or(0)).sum();
-          println!("sum = {}, number = {}, ans = {}", sum, number, sum * number);
-
-          maybe_board.take();
+          winners.push(sum * number);
         }
       }
     }
   }
+
+  println!(
+    "ans: {}",
+    winners
+      .pop()
+      .unwrap_or_else(|| panic!("Somehow we don't have an answer"))
+  );
 }

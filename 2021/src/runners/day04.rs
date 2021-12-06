@@ -123,11 +123,7 @@ pub fn run_a() {
     for mut board in &mut boards {
       update_board(&mut board, *number);
       if board_wins(board) {
-        let sum = board
-          .data
-          .iter()
-          .map(|val| val.unwrap_or(0))
-          .fold(0, |a, b| a + b);
+        let sum: u32 = board.data.iter().map(|val| val.unwrap_or(0)).sum();
         println!("sum = {}, number = {}, ans = {}", sum, number, sum * number);
         return;
       }
@@ -149,12 +145,8 @@ pub fn run_b() {
       if let Some(board) = maybe_board {
         update_board(board, *number);
 
-        if board_wins(&board) {
-          let sum = board
-            .data
-            .iter()
-            .map(|val| val.unwrap_or(0))
-            .fold(0, |a, b| a + b);
+        if board_wins(board) {
+          let sum: u32 = board.data.iter().map(|val| val.unwrap_or(0)).sum();
           println!("sum = {}, number = {}, ans = {}", sum, number, sum * number);
 
           maybe_board.take();

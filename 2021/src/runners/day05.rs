@@ -16,7 +16,7 @@ pub fn run_a() {
         .map(|val| val.trim().parse::<Point>().unwrap())
         .collect::<Vec<_>>()
     })
-    .for_each(|points| update_map(&mut map, &points[0], &points[1]));
+    .for_each(|points| update_map_a(&mut map, &points[0], &points[1]));
 
   let amt = map.iter().filter(|(_, v)| **v >= 2).fold(0, |mut acc, _| {
     acc += 1;
@@ -29,7 +29,7 @@ pub fn run_b() {
   println!("Hello day05, part b!")
 }
 
-fn update_map(map: &mut HashMap<Point, u32>, p1: &Point, p2: &Point) {
+fn update_map_a(map: &mut HashMap<Point, u32>, p1: &Point, p2: &Point) {
   if p1.x == p2.x {
     match p1.y.cmp(&p2.y) {
       Ordering::Less => add_line(Orientation::Horizontal, map, p1, p2),

@@ -6,8 +6,11 @@ pub fn run_a() {
   let lines = file_to_lines("data/test.txt");
 
   for line in lines {
-    let val = line.split_ascii_whitespace().take(1).collect::<String>();
-    println!("{:?}", val.parse::<Point>().unwrap());
+    let points = line
+      .split("->")
+      .map(|val| val.trim().parse::<Point>().unwrap())
+      .collect::<Vec<_>>();
+    println!("{:?}", points);
   }
 }
 

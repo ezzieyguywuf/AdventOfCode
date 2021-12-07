@@ -15,25 +15,24 @@ pub fn run_a() {
   //   let val = data.get(&i).unwrap_or(&0);
   //   println!("{}: {}", i, val);
   // }
-  println!("day06a: ans = {}", data.values().sum::<u32>());
+  println!("day06a: ans = {}", data.values().sum::<u64>());
 }
 
 pub fn run_b() {
-  // let mut vals = parse();
-  // run_simulation(10, &mut vals);
-  // println!("day06b: ans = {}", vals.len());
-  println!("day06b: hello!")
+  let mut data = parse();
+  run_simulation(256, &mut data);
+  println!("day06a: ans = {}", data.values().sum::<u64>());
 }
 
-fn parse() -> HashMap<u32, u32> {
-  let line = file_to_lines("data/test.txt").collect::<String>();
+fn parse() -> HashMap<u32, u64> {
+  let line = file_to_lines("data/06_input.txt").collect::<String>();
   let vals = line.split(',').map(|val| {
     val
       .parse::<u32>()
-      .unwrap_or_else(|_| panic!("Unable to parse {:?} into u32", val))
+      .unwrap_or_else(|_| panic!("Unable to parse {:?} into u64", val))
   });
 
-  let mut map = HashMap::new();
+  let mut map: HashMap<u32, u64> = HashMap::new();
   for val in vals {
     let amt = map.entry(val).or_insert(0);
     *amt += 1;
@@ -42,14 +41,14 @@ fn parse() -> HashMap<u32, u32> {
   map
 }
 
-fn run_simulation(days: u32, data: &mut HashMap<u32, u32>) {
+fn run_simulation(days: u32, data: &mut HashMap<u32, u64>) {
   for _ in 0..days {
     tick(data);
   }
 }
 
-fn tick(data: &mut HashMap<u32, u32>) {
-  let mut prev: u32 = 0;
+fn tick(data: &mut HashMap<u32, u64>) {
+  let mut prev: u64 = 0;
   for day in (0..9).rev() {
     if day > 0 {
       let today = data.entry(day).or_insert(0);

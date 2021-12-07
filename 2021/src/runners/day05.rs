@@ -1,5 +1,4 @@
 use advent_of_code::util::*;
-use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::iter;
 use std::num::ParseIntError;
@@ -16,7 +15,7 @@ pub fn run_a() {
         .map(|val| val.trim().parse::<Point>().unwrap())
         .collect::<Vec<_>>()
     })
-    .for_each(|points| update_map_a(&mut map, &points[0], &points[1]));
+    .for_each(|points| update_map(&mut map, &points[0], &points[1]));
 
   let amt = map.iter().filter(|(_, v)| **v >= 2).fold(0, |mut acc, _| {
     acc += 1;
@@ -26,41 +25,109 @@ pub fn run_a() {
 }
 
 pub fn run_b() {
-  println!("Hello day05, part b!")
+  let lines = file_to_lines("data/05_input.txt");
+  let mut map: HashMap<Point, u32> = HashMap::new();
+
+  lines
+    .map(|line| {
+      line
+        .split("->")
+        .map(|val| val.trim().parse::<Point>().unwrap())
+        .collect::<Vec<_>>()
+    })
+    .for_each(|points| update_map_with_diag(&mut map, &points[0], &points[1]));
+
+  let amt = map.iter().filter(|(_, v)| **v >= 2).fold(0, |mut acc, _| {
+    acc += 1;
+    acc
+  });
+  // for (k, v) in map.iter() {
+  //   println!("{:?}: {:?}", k, v);
+  // }
+  println!("total: {}", amt);
 }
 
-fn update_map_a(map: &mut HashMap<Point, u32>, p1: &Point, p2: &Point) {
-  if p1.x == p2.x {
-    match p1.y.cmp(&p2.y) {
-      Ordering::Less => add_line(Orientation::Horizontal, map, p1, p2),
-      Ordering::Greater => add_line(Orientation::Horizontal, map, p2, p1),
-      Ordering::Equal => add_point(map, p1),
-    }
-  } else if p1.y == p2.y {
-    match p1.x.cmp(&p2.x) {
-      Ordering::Less => add_line(Orientation::Vertical, map, p1, p2),
-      Ordering::Greater => add_line(Orientation::Vertical, map, p2, p1),
-      Ordering::Equal => add_point(map, p1),
-    }
+fn update_map(map: &mut HashMap<Point, u32>, p1: &Point, p2: &Point) {
+  if p1.x == p2.x || p1.y == p2.y {
+    add_line(map, p1, p2);
   }
 }
 
-fn add_line(orient: Orientation, map: &mut HashMap<Point, u32>, p1: &Point, p2: &Point) {
+fn update_map_with_diag(map: &mut HashMap<Point, u32>, p1: &Point, p2: &Point) {
+  add_line(map, p1, p2);
+}
+
+fn get_orientation(p1: &Point, p2: &Point) -> Orientation {
+  if p1 == p2 {
+    Orientation::Overlap
+  } else if p1.x == p2.x && p2.y > p1.y {
+    Orientation::VerticalUp
+  } else if p1.x == p2.x && p2.y < p1.y {
+    Orientation::VerticalDown
+  } else if p1.y == p2.y && p2.x > p1.x {
+    Orientation::HorizontalRight
+  } else if p1.y == p2.y && p2.x < p1.x {
+    Orientation::HorizontalLeft
+  } else if p1.x < p2.x && p1.y < p2.y {
+    Orientation::DiagonalUpRight
+  } else if p1.x < p2.x && p1.y > p2.y {
+    Orientation::DiagonalDownRight
+  } else if p1.x > p2.x && p1.y < p2.y {
+    Orientation::DiagonalUpLeft
+  } else if p1.x > p2.x && p1.y > p2.y {
+    Orientation::DiagonalDownLeft
+  } else {
+    unreachable!();
+  }
+}
+
+fn add_line(map: &mut HashMap<Point, u32>, p1: &Point, p2: &Point) {
+  let orient = get_orientation(p1, p2);
   let xs: Vec<u32>;
   let ys: Vec<u32>;
 
   match orient {
-    Orientation::Vertical => {
+    Orientation::HorizontalRight => {
       xs = (p1.x..p2.x + 1).collect();
       ys = iter::repeat(p1.y).take(xs.len()).collect();
     }
-    Orientation::Horizontal => {
+    Orientation::HorizontalLeft => {
+      xs = (p2.x..p1.x + 1).collect();
+      ys = iter::repeat(p1.y).take(xs.len()).collect();
+    }
+    Orientation::VerticalUp => {
       ys = (p1.y..p2.y + 1).collect();
       xs = iter::repeat(p1.x).take(ys.len()).collect();
     }
+    Orientation::VerticalDown => {
+      ys = (p2.y..p1.y + 1).collect();
+      xs = iter::repeat(p1.x).take(ys.len()).collect();
+    }
+    Orientation::Overlap => {
+      xs = vec![p1.x];
+      ys = vec![p1.y];
+    }
+    Orientation::DiagonalUpRight => {
+      xs = (p1.x..p2.x + 1).collect();
+      ys = (p1.y..p2.y + 1).collect();
+    }
+    Orientation::DiagonalDownLeft => {
+      xs = (p2.x..p1.x + 1).collect();
+      ys = (p2.y..p1.y + 1).collect();
+    }
+    Orientation::DiagonalUpLeft => {
+      xs = (p2.x..p1.x + 1).collect();
+      ys = (p1.y..p2.y + 1).rev().collect();
+    }
+    Orientation::DiagonalDownRight => {
+      xs = (p1.x..p2.x + 1).collect();
+      ys = (p2.y..p1.y + 1).rev().collect();
+    }
   }
 
+  // println!("{:?} -> {:?}, {:?}", p1, p2, orient);
   for (x, y) in xs.iter().zip(ys) {
+    // println!("  ({:?},{:?})", x, y);
     add_point(map, &Point { x: *x, y });
   }
 }
@@ -76,9 +143,17 @@ struct Point {
   y: u32,
 }
 
+#[derive(Debug)]
 enum Orientation {
-  Vertical,
-  Horizontal,
+  VerticalUp,
+  VerticalDown,
+  HorizontalRight,
+  HorizontalLeft,
+  Overlap,
+  DiagonalUpRight,
+  DiagonalDownRight,
+  DiagonalUpLeft,
+  DiagonalDownLeft,
 }
 
 impl FromStr for Point {

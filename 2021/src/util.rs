@@ -20,3 +20,15 @@ pub fn file_to_ints(fname: &str) -> Vec<i32> {
       .unwrap_or_else(|e| panic!("Unable to parse value into integer: {}", e))
   })
 }
+
+pub fn file_line_to_uints(fname: &str) -> Vec<u32> {
+  let line = file_to_lines(fname).collect::<String>();
+  line
+    .split(',')
+    .map(|val| {
+      val
+        .parse::<u32>()
+        .unwrap_or_else(|_| panic!("Unable to parse {:?} into u64", val))
+    })
+    .collect()
+}

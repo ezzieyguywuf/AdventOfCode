@@ -25,12 +25,7 @@ pub fn run_b() {
 }
 
 fn parse() -> HashMap<u32, u64> {
-  let line = file_to_lines("data/06_input.txt").collect::<String>();
-  let vals = line.split(',').map(|val| {
-    val
-      .parse::<u32>()
-      .unwrap_or_else(|_| panic!("Unable to parse {:?} into u64", val))
-  });
+  let vals = file_line_to_uints("data/06_input.txt");
 
   let mut map: HashMap<u32, u64> = HashMap::new();
   for val in vals {

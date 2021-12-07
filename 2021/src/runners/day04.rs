@@ -124,7 +124,12 @@ pub fn run_a() {
       update_board(board, *number);
       if board_wins(board) {
         let sum: u32 = board.data.iter().map(|val| val.unwrap_or(0)).sum();
-        println!("sum = {}, number = {}, ans = {}", sum, number, sum * number);
+        println!(
+          "day04a: sum = {}, number = {}, ans = {}",
+          sum,
+          number,
+          sum * number
+        );
         return;
       }
     }
@@ -150,14 +155,14 @@ pub fn run_b() {
 
         if board_wins(board) {
           let sum: u32 = board.data.iter().map(|val| val.unwrap_or(0)).sum();
-          winners.push(sum * number);
+          winners.push(sum + number);
         }
       }
     }
   }
 
   println!(
-    "ans: {}",
+    "day04b: ans: {}",
     winners
       .pop()
       .unwrap_or_else(|| panic!("Somehow we don't have an answer"))

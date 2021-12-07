@@ -21,7 +21,7 @@ pub fn run_a() {
     acc += 1;
     acc
   });
-  println!("total: {}", amt);
+  println!("day05a: total: {}", amt);
 }
 
 pub fn run_b() {
@@ -44,7 +44,7 @@ pub fn run_b() {
   // for (k, v) in map.iter() {
   //   println!("{:?}: {:?}", k, v);
   // }
-  println!("total: {}", amt);
+  println!("day05b: total: {}", amt);
 }
 
 fn update_map(map: &mut HashMap<Point, u32>, p1: &Point, p2: &Point) {

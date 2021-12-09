@@ -18,28 +18,26 @@ pub fn run_a() {
 
 pub fn run_b() {
   let datas = parse();
+  let mut ans = 0;
   for ExperimentData {
     experiments,
     results,
-  } in datas.iter().take(1)
+  } in datas
   {
-    let combos: HashMap<Arrangement, String> = calculate_combos(experiments);
-    println!("{:?}", experiments);
-    for (k, v) in combos.iter() {
-      println!("  {:?}: {}", k, v)
-    }
-    let signals: HashMap<char, Signal> = solve_signals(experiments, &combos);
-    for (k, v) in signals.iter() {
-      println!("{}: {:?}", k, v)
+    let combos: HashMap<Arrangement, String> = calculate_combos(&experiments);
+    let signals: HashMap<char, Signal> = solve_signals(&experiments, &combos);
+
+    let mut amt = 0;
+    const BASE: u32 = 10;
+    for (n, result) in results.iter().rev().enumerate() {
+      let val: u32 = decode(result, &signals);
+      amt += val * BASE.pow(n.try_into().unwrap());
     }
 
-    for result in results {
-      let val: u32 = decode(result, &signals);
-      println!("  {} -> {}", result, val);
-    }
+    ans += amt;
   }
 
-  println!("day08b: ans = {}", 42);
+  println!("day08b: ans = {}", ans);
 }
 
 fn decode(value: &str, signals: &HashMap<char, Signal>) -> u32 {
@@ -209,8 +207,8 @@ fn solve_signals(
           solve(
             &mut signals,
             experiment,
-            (left_one, Signal::BotRight),
-            (right_one, Signal::TopRight),
+            (left_one, Signal::TopRight),
+            (right_one, Signal::BotRight),
           );
         }
         let left_hil = hil.chars().next().unwrap();
@@ -221,10 +219,8 @@ fn solve_signals(
           (left_hil, Signal::TopBot),
           (right_hil, Signal::TopLeft),
         );
-      } else if has_substr(experiment, one)
-        && !(has_value(&signals, Signal::TopLeft) || has_value(&signals, Signal::BotLeft))
-      {
-        if !has_value(&signals, Signal::TopBot) {
+      } else if has_substr(experiment, one) && !has_value(&signals, Signal::BotLeft) {
+        if !has_value(&signals, Signal::TopLeft) {
           let left_hil = hil.chars().next().unwrap();
           let right_hil = hil.chars().nth(1).unwrap();
           solve(
@@ -234,7 +230,7 @@ fn solve_signals(
             (right_hil, Signal::TopLeft),
           );
         }
-        if !has_value(&signals, Signal::BotBot) {
+        if !has_value(&signals, Signal::BotLeft) {
           let left_lol = lol.chars().next().unwrap();
           let right_lol = lol.chars().nth(1).unwrap();
           solve(
@@ -322,7 +318,7 @@ fn calculate_combos(experiments: &[String; 10]) -> HashMap<Arrangement, String> 
 }
 
 fn parse() -> Vec<ExperimentData> {
-  let lines = file_to_lines("data/test.txt");
+  let lines = file_to_lines("data/08_input.txt");
   lines
     .map(|line| {
       let (raw_experiments, raw_results) = line
@@ -355,19 +351,6 @@ fn parse() -> Vec<ExperimentData> {
 struct ExperimentData {
   experiments: [String; 10],
   results: [String; 4],
-}
-
-enum Number {
-  Zero,
-  One,
-  Two,
-  Three,
-  Four,
-  Five,
-  Six,
-  Seven,
-  Eight,
-  Nine,
 }
 
 // These correspond to the various fundamental arrangements of the 7-digit

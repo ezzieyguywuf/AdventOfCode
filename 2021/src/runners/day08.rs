@@ -18,7 +18,11 @@ pub fn run_a() {
 
 pub fn run_b() {
   let datas = parse();
-  for ExperimentData { experiments, .. } in datas.iter().take(1) {
+  for ExperimentData {
+    experiments,
+    results,
+  } in datas.iter().take(1)
+  {
     let combos: HashMap<Arrangement, String> = calculate_combos(experiments);
     println!("{:?}", experiments);
     for (k, v) in combos.iter() {
@@ -28,10 +32,128 @@ pub fn run_b() {
     for (k, v) in signals.iter() {
       println!("{}: {:?}", k, v)
     }
+
+    for result in results {
+      let val: u32 = decode(result, &signals);
+      println!("  {} -> {}", result, val);
+    }
   }
 
   println!("day08b: ans = {}", 42);
 }
+
+fn decode(value: &str, signals: &HashMap<char, Signal>) -> u32 {
+  let segments = value
+    .chars()
+    .map(|c| signals.get(&c).unwrap())
+    .copied()
+    .collect::<Vec<Signal>>();
+
+  if is_permutation(&segments, &ZERO) {
+    return 0;
+  } else if is_permutation(&segments, &ONE) {
+    return 1;
+  } else if is_permutation(&segments, &TWO) {
+    return 2;
+  } else if is_permutation(&segments, &THREE) {
+    return 3;
+  } else if is_permutation(&segments, &FOUR) {
+    return 4;
+  } else if is_permutation(&segments, &FIVE) {
+    return 5;
+  } else if is_permutation(&segments, &SIX) {
+    return 6;
+  } else if is_permutation(&segments, &SEVEN) {
+    return 7;
+  } else if is_permutation(&segments, &EIGHT) {
+    return 8;
+  } else if is_permutation(&segments, &NINE) {
+    return 9;
+  }
+  panic!("{:?} -> {:?} cannot decode these signals", value, segments)
+}
+
+fn is_permutation(input: &[Signal], number: &[Signal]) -> bool {
+  if input.len() != number.len() {
+    return false;
+  }
+
+  input
+    .iter()
+    .all(|signal| number.iter().any(|val| val == signal))
+}
+
+const ZERO: [Signal; 6] = [
+  Signal::TopRight,
+  Signal::BotRight,
+  Signal::BotBot,
+  Signal::BotLeft,
+  Signal::TopLeft,
+  Signal::TopTop,
+];
+
+const ONE: [Signal; 2] = [Signal::TopRight, Signal::BotRight];
+
+const TWO: [Signal; 5] = [
+  Signal::TopTop,
+  Signal::TopRight,
+  Signal::TopBot,
+  Signal::BotLeft,
+  Signal::BotBot,
+];
+
+const THREE: [Signal; 5] = [
+  Signal::TopTop,
+  Signal::TopRight,
+  Signal::TopBot,
+  Signal::BotRight,
+  Signal::BotBot,
+];
+
+const FOUR: [Signal; 4] = [
+  Signal::TopLeft,
+  Signal::TopRight,
+  Signal::TopBot,
+  Signal::BotRight,
+];
+
+const FIVE: [Signal; 5] = [
+  Signal::TopTop,
+  Signal::TopLeft,
+  Signal::TopBot,
+  Signal::BotRight,
+  Signal::BotBot,
+];
+
+const SIX: [Signal; 6] = [
+  Signal::TopTop,
+  Signal::TopLeft,
+  Signal::TopBot,
+  Signal::BotRight,
+  Signal::BotBot,
+  Signal::BotLeft,
+];
+
+const SEVEN: [Signal; 3] = [Signal::TopTop, Signal::TopRight, Signal::BotRight];
+
+const EIGHT: [Signal; 7] = [
+  Signal::TopTop,
+  Signal::TopLeft,
+  Signal::TopRight,
+  Signal::TopBot,
+  Signal::BotRight,
+  Signal::BotBot,
+  Signal::BotLeft,
+];
+
+const NINE: [Signal; 6] = [
+  Signal::TopTop,
+  Signal::TopLeft,
+  Signal::TopRight,
+  Signal::TopBot,
+  Signal::BotRight,
+  Signal::BotBot,
+];
 
 fn solve_signals(
   experiments: &[String; 10],
@@ -235,6 +357,19 @@ struct ExperimentData {
   results: [String; 4],
 }
 
+enum Number {
+  Zero,
+  One,
+  Two,
+  Three,
+  Four,
+  Five,
+  Six,
+  Seven,
+  Eight,
+  Nine,
+}
+
 // These correspond to the various fundamental arrangements of the 7-digit
 // display that can be used to solve the problem. In the diagrams below, the "a"
 // designates the segments that each combination comprises of.
@@ -257,7 +392,7 @@ enum Arrangement {
   LoL,
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone, PartialOrd, Ord)]
 enum Signal {
   TopLeft,
   TopTop,

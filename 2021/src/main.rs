@@ -24,6 +24,8 @@ fn main() -> io::Result<()> {
   // timer(runners::day07::run_b);
   timer(runners::day08::run_a);
   timer(runners::day08::run_b);
+  timer(runners::day09::run_a);
+  timer(runners::day09::run_b);
 
   Ok(())
 }

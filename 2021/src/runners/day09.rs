@@ -2,6 +2,14 @@ use advent_of_code::util::*;
 
 pub fn run_a() {
   let matrix = parse();
+  let mut graph: Vec<Node> = Vec::new();
+
+  for value in &matrix.data {
+    graph.push(Node {
+      value: *value,
+      incoming: Vec::new(),
+    });
+  }
 
   for row in 0..matrix.rows {
     for col in 0..matrix.cols {
@@ -53,6 +61,11 @@ fn parse() -> Matrix {
 struct Coord {
   row: usize,
   col: usize,
+}
+
+struct Node {
+  value: u32,
+  incoming: Vec<Coord>,
 }
 
 struct Matrix {

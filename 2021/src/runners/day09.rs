@@ -19,8 +19,19 @@ pub fn run_b() {
   let matrix = parse();
   let graph = make_graph(&matrix);
   let low_spots = get_low_spots(&graph);
+  let mut basin_sizes: Vec<u32> = Vec::new();
+
+  for i in low_spots {
+    let basin_size = get_basin_size(i, &graph);
+    basin_sizes.push(basin_size);
+  }
 
   println!("day09b: ans = {}", 42);
+}
+
+fn get_basin_size(which: usize, graph: &Vec<Node>) -> u32 {
+  let mut size: u32 = 0;
+  size
 }
 
 fn get_low_spots(graph: &Vec<Node>) -> Vec<usize> {

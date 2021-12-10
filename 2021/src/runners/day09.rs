@@ -80,12 +80,14 @@ pub fn run_a() {
     }
   }
 
+  let mut ans = 0;
   for node in graph {
     if node.incoming.len() == 4 {
       println!("node with val {} is local minimum", node.value);
+      ans += node.value + 1;
     }
   }
-  println!("day09a: ans = {}", 42);
+  println!("day09a: ans = {}", ans);
 }
 
 pub fn run_b() {
@@ -99,7 +101,7 @@ pub fn run_b() {
 // sample output:
 // Matrix { rows: 2, cols: 5, data: [1,2,3,4,5,6,7,8,9,0] }
 fn parse() -> Matrix {
-  let lines = file_to_lines("data/test.txt");
+  let lines = file_to_lines("data/09_input.txt");
   let mut data: Vec<u32> = Vec::new();
   let mut first = true;
   let mut rows = 0;

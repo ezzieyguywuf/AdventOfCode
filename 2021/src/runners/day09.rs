@@ -5,18 +5,33 @@ pub fn run_a() {
   let matrix = parse();
   let mut ans = 0;
   let graph = make_graph(&matrix);
+  let indices = get_low_spots(&graph);
 
-  for node in graph {
-    if node.incoming.len() == 4 {
-      println!("node with val {} is local minimum", node.value);
-      ans += node.value + 1;
-    }
+  for i in indices {
+    // unwrap should be safe since the index came from get_low_spots...
+    let node = graph.get(i).unwrap();
+    ans += node.value + 1;
   }
   println!("day09a: ans = {}", ans);
 }
 
 pub fn run_b() {
+  let matrix = parse();
+  let graph = make_graph(&matrix);
+  let low_spots = get_low_spots(&graph);
+
   println!("day09b: ans = {}", 42);
+}
+
+fn get_low_spots(graph: &Vec<Node>) -> Vec<usize> {
+  let mut out: Vec<usize> = Vec::new();
+  for (i, node) in graph.iter().enumerate() {
+    if node.incoming.len() == 4 {
+      out.push(i);
+    }
+  }
+
+  out
 }
 
 fn make_graph(matrix: &Matrix) -> Vec<Node> {

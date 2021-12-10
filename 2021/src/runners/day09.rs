@@ -3,6 +3,23 @@ use std::cmp::Ordering;
 
 pub fn run_a() {
   let matrix = parse();
+  let mut ans = 0;
+  let graph = make_graph(&matrix);
+
+  for node in graph {
+    if node.incoming.len() == 4 {
+      println!("node with val {} is local minimum", node.value);
+      ans += node.value + 1;
+    }
+  }
+  println!("day09a: ans = {}", ans);
+}
+
+pub fn run_b() {
+  println!("day09b: ans = {}", 42);
+}
+
+fn make_graph(matrix: &Matrix) -> Vec<Node> {
   let mut graph: Vec<Node> = Vec::new();
 
   for value in &matrix.data {
@@ -81,18 +98,7 @@ pub fn run_a() {
     }
   }
 
-  let mut ans = 0;
-  for node in graph {
-    if node.incoming.len() == 4 {
-      println!("node with val {} is local minimum", node.value);
-      ans += node.value + 1;
-    }
-  }
-  println!("day09a: ans = {}", ans);
-}
-
-pub fn run_b() {
-  println!("day09b: ans = {}", 42);
+  graph
 }
 
 // sample input:

@@ -4,7 +4,7 @@ pub fn run_a() {
   let matrix = parse();
   for row in 0..matrix.rows {
     for col in 0..matrix.cols {
-      let val = matrix.get_cell(row, col);
+      let val = matrix.get_cell(row, col).unwrap();
       print!("{}", val);
     }
     println!();
@@ -56,15 +56,12 @@ struct Matrix {
 }
 
 impl Matrix {
-  fn get_cell(&self, row: usize, col: usize) -> &u32 {
+  fn get_cell(&self, row: usize, col: usize) -> Option<&u32> {
     if row >= self.rows || col >= self.cols {
-      panic!(
-        "\nrow must be less than {}.\ncol must be less than {}\nYou provided row = {}, col = {}\n",
-        self.rows, self.cols, row, col
-      );
+      return None;
     }
     let index = self.cols * row + col;
 
-    &self.data.as_slice()[index]
+    Some(&self.data.as_slice()[index])
   }
 }

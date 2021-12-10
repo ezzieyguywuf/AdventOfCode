@@ -103,27 +103,19 @@ pub fn run_b() {
 fn parse() -> Matrix {
   let lines = file_to_lines("data/09_input.txt");
   let mut data: Vec<u32> = Vec::new();
-  let mut first = true;
   let mut rows = 0;
-  let mut cols = 0;
 
   for line in lines {
     rows += 1;
     for c in line.chars() {
-      if first {
-        cols += 1;
-      }
       let val = c
         .to_digit(10)
         .unwrap_or_else(|| panic!("unable to parse {} into a u32", c));
       data.push(val);
     }
-
-    if first {
-      first = false;
-    }
   }
 
+  let cols = data.len() / rows;
   Matrix { cols, rows, data }
 }
 

@@ -13,9 +13,14 @@ pub fn run_a() {
 
   for row in 0..matrix.rows {
     for col in 0..matrix.cols {
-      let val = matrix.get_cell(Coord { row, col }).unwrap();
-      let right = matrix.get_cell(Coord { row, col: col + 1 });
-      let down = matrix.get_cell(Coord { row: row + 1, col });
+      let coord = Coord { row, col };
+      let val = matrix.get_cell(&coord).unwrap();
+      let right = matrix.get_cell(&Coord { row, col: col + 1 });
+      let down = matrix.get_cell(&Coord { row: row + 1, col });
+
+      // this should always be valid, thus unwrap is ok
+      let graph_index = matrix.make_index(&coord).unwrap();
+      graph[graph_index].value = *val;
 
       print!("{}", val);
     }
@@ -78,11 +83,11 @@ struct Matrix {
 }
 
 impl Matrix {
-  fn get_cell(&self, coord: Coord) -> Option<&u32> {
+  fn get_cell(&self, coord: &Coord) -> Option<&u32> {
     self.make_index(coord).map(|i| &self.data.as_slice()[i])
   }
 
-  fn make_index(&self, coord: Coord) -> Option<usize> {
+  fn make_index(&self, coord: &Coord) -> Option<usize> {
     if coord.row >= self.rows || coord.col >= self.cols {
       return None;
     }

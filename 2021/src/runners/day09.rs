@@ -1,4 +1,5 @@
 use advent_of_code::util::*;
+use std::cmp::Ordering;
 
 pub fn run_a() {
   let matrix = parse();
@@ -49,24 +50,32 @@ pub fn run_a() {
       }
 
       if let Some(right_val) = right {
-        if val < right_val {
-          let node: &mut Node = graph.get_mut(graph_index).unwrap();
-          node.incoming.push(right_coord);
-        } else if val > right_val {
-          // unwrap should be safe since right_val was Some
-          let right_index = matrix.make_index(&right_coord).unwrap();
-          graph.get_mut(right_index).unwrap().incoming.push(coord);
+        match val.cmp(right_val) {
+          Ordering::Less => {
+            let node: &mut Node = graph.get_mut(graph_index).unwrap();
+            node.incoming.push(right_coord);
+          }
+          Ordering::Greater => {
+            // unwrap should be safe since right_val was Some
+            let right_index = matrix.make_index(&right_coord).unwrap();
+            graph.get_mut(right_index).unwrap().incoming.push(coord);
+          }
+          _ => (),
         }
       }
 
       if let Some(down_val) = down {
-        let node: &mut Node = graph.get_mut(graph_index).unwrap();
-        if val < down_val {
-          node.incoming.push(down_coord);
-        } else if val > down_val {
-          // unwrap should be safe since right_val was Some
-          let down_index = matrix.make_index(&down_coord).unwrap();
-          graph.get_mut(down_index).unwrap().incoming.push(coord);
+        match val.cmp(down_val) {
+          Ordering::Less => {
+            let node: &mut Node = graph.get_mut(graph_index).unwrap();
+            node.incoming.push(down_coord);
+          }
+          Ordering::Greater => {
+            // unwrap should be safe since right_val was Some
+            let down_index = matrix.make_index(&down_coord).unwrap();
+            graph.get_mut(down_index).unwrap().incoming.push(coord);
+          }
+          _ => (),
         }
       }
     }

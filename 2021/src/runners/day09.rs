@@ -2,9 +2,10 @@ use advent_of_code::util::*;
 
 pub fn run_a() {
   let matrix = parse();
+
   for row in 0..matrix.rows {
     for col in 0..matrix.cols {
-      let val = matrix.get_cell(row, col).unwrap();
+      let val = matrix.get_cell(Coord { row, col }).unwrap();
       print!("{}", val);
     }
     println!();
@@ -49,6 +50,11 @@ fn parse() -> Matrix {
   Matrix { cols, rows, data }
 }
 
+struct Coord {
+  row: usize,
+  col: usize,
+}
+
 struct Matrix {
   cols: usize,
   rows: usize,
@@ -56,11 +62,11 @@ struct Matrix {
 }
 
 impl Matrix {
-  fn get_cell(&self, row: usize, col: usize) -> Option<&u32> {
-    if row >= self.rows || col >= self.cols {
+  fn get_cell(&self, coord: Coord) -> Option<&u32> {
+    if coord.row >= self.rows || coord.col >= self.cols {
       return None;
     }
-    let index = self.cols * row + col;
+    let index = self.cols * coord.row + coord.col;
 
     Some(&self.data.as_slice()[index])
   }

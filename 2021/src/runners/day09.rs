@@ -27,18 +27,35 @@ pub fn run_b() {
     basin_sizes.push(basin_size);
   }
 
-  println!("day09b: ans = {}", 42);
+  basin_sizes.sort_unstable();
+  let ans: u32 = basin_sizes.iter().rev().take(3).product();
+
+  println!("day09b: ans = {}", ans);
 }
 
-fn get_basin_size(which: usize, _graph: &[Node]) -> u32 {
-  let mut _size: u32 = 0;
-  let mut _seen: HashSet<usize> = HashSet::new();
+fn get_basin_size(which: usize, graph: &[Node]) -> u32 {
+  let mut size: u32 = 0;
+  let mut seen: HashSet<usize> = HashSet::from([which]);
   let mut queue: VecDeque<usize> = VecDeque::from([which]);
 
   while let Some(visit) = queue.pop_front() {
-    println!("visiting: {}", visit);
+    size += 1;
+
+    // since the walls are represented by Matrix::out_of_bounds_index, we can't
+    // arbitrarily unwrap here
+    if let Some(node) = graph.get(visit) {
+      for neighbor_index in &node.incoming {
+        if let Some(neighbor) = graph.get(*neighbor_index) {
+          if neighbor.value < 9 && !seen.contains(neighbor_index) {
+            seen.insert(*neighbor_index);
+            queue.push_back(*neighbor_index);
+          }
+        }
+      }
+    }
   }
-  _size
+
+  size
 }
 
 fn get_low_spots(graph: &[Node]) -> Vec<usize> {
@@ -143,7 +160,7 @@ fn make_graph(matrix: &Matrix) -> Vec<Node> {
 // sample output:
 // Matrix { rows: 2, cols: 5, data: [1,2,3,4,5,6,7,8,9,0] }
 fn parse() -> Matrix {
-  let lines = file_to_lines("data/test.txt");
+  let lines = file_to_lines("data/09_input.txt");
   let mut data: Vec<u32> = Vec::new();
   let mut rows = 0;
 

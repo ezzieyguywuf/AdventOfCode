@@ -5,6 +5,7 @@ const INPUT_FILE: &str = "data/test.txt";
 pub fn run_a() {
   let lines = file_to_lines(INPUT_FILE);
   let mut stack: Vec<char> = Vec::new();
+  let mut ans = 0;
 
   for line in lines {
     for delim in line.chars() {
@@ -14,16 +15,13 @@ pub fn run_a() {
         let left = stack.pop().unwrap();
 
         if !is_pair(left, delim) {
-          println!(
-            "{}: corrupted, expected match for {}, got {} instead",
-            line, left, delim
-          );
+          ans += get_score(delim);
         }
       }
     }
   }
 
-  println!("day09a: ans = {}", 42);
+  println!("day09a: ans = {}", ans);
 }
 
 pub fn run_b() {
@@ -45,5 +43,19 @@ fn is_pair(left: char, right: char) -> bool {
     right == '>'
   } else {
     panic!("The character {} is not part of this puzzle", left)
+  }
+}
+
+fn get_score(c: char) -> u32 {
+  if c == ')' {
+    3
+  } else if c == ']' {
+    57
+  } else if c == '}' {
+    1197
+  } else if c == '>' {
+    25137
+  } else {
+    panic!("{} does not seem to be scorable", c)
   }
 }

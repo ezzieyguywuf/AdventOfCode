@@ -30,7 +30,7 @@ pub fn run_b() {
   println!("day09b: ans = {}", 42);
 }
 
-fn get_basin_size(which: usize, _graph: &Vec<Node>) -> u32 {
+fn get_basin_size(which: usize, _graph: &[Node]) -> u32 {
   let mut _size: u32 = 0;
   let mut _seen: HashSet<usize> = HashSet::new();
   let mut queue: VecDeque<usize> = VecDeque::from([which]);
@@ -41,7 +41,7 @@ fn get_basin_size(which: usize, _graph: &Vec<Node>) -> u32 {
   _size
 }
 
-fn get_low_spots(graph: &Vec<Node>) -> Vec<usize> {
+fn get_low_spots(graph: &[Node]) -> Vec<usize> {
   let mut out: Vec<usize> = Vec::new();
   for (i, node) in graph.iter().enumerate() {
     if node.incoming.len() == 4 {
@@ -193,6 +193,6 @@ impl Matrix {
   }
 
   fn out_of_bounds_index(&self) -> usize {
-    return self.data.len();
+    self.data.len()
   }
 }

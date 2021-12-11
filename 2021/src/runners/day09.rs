@@ -76,32 +76,44 @@ fn make_graph(matrix: &Matrix) -> Vec<Node> {
       // walls as incoming
       if row == 0 || row == matrix.rows - 1 {
         let node: &mut Node = graph.get_mut(graph_index).unwrap();
-        node.incoming.push(Coord {
-          row: matrix.rows,
-          col: matrix.cols,
-        });
+        node.incoming.push(
+          matrix
+            .make_index(&Coord {
+              row: matrix.rows,
+              col: matrix.cols,
+            })
+            .unwrap(),
+        );
       }
 
       // for the first and last columns, count the left and right (respectively)
       // walls as incoming
       if col == 0 || col == matrix.cols - 1 {
         let node: &mut Node = graph.get_mut(graph_index).unwrap();
-        node.incoming.push(Coord {
-          row: matrix.rows,
-          col: matrix.cols,
-        });
+        node.incoming.push(
+          matrix
+            .make_index(&Coord {
+              row: matrix.rows,
+              col: matrix.cols,
+            })
+            .unwrap(),
+        );
       }
 
       if let Some(right_val) = right {
         match val.cmp(right_val) {
           Ordering::Less => {
             let node: &mut Node = graph.get_mut(graph_index).unwrap();
-            node.incoming.push(right_coord);
+            node.incoming.push(matrix.make_index(&right_coord).unwrap());
           }
           Ordering::Greater => {
             // unwrap should be safe since right_val was Some
             let right_index = matrix.make_index(&right_coord).unwrap();
-            graph.get_mut(right_index).unwrap().incoming.push(coord);
+            graph
+              .get_mut(right_index)
+              .unwrap()
+              .incoming
+              .push(matrix.make_index(&coord).unwrap());
           }
           _ => (),
         }
@@ -111,12 +123,16 @@ fn make_graph(matrix: &Matrix) -> Vec<Node> {
         match val.cmp(down_val) {
           Ordering::Less => {
             let node: &mut Node = graph.get_mut(graph_index).unwrap();
-            node.incoming.push(down_coord);
+            node.incoming.push(matrix.make_index(&down_coord).unwrap());
           }
           Ordering::Greater => {
             // unwrap should be safe since right_val was Some
             let down_index = matrix.make_index(&down_coord).unwrap();
-            graph.get_mut(down_index).unwrap().incoming.push(coord);
+            graph
+              .get_mut(down_index)
+              .unwrap()
+              .incoming
+              .push(matrix.make_index(&coord).unwrap());
           }
           _ => (),
         }
@@ -161,7 +177,7 @@ struct Coord {
 #[derive(Debug)]
 struct Node {
   value: u32,
-  incoming: Vec<Coord>,
+  incoming: Vec<usize>,
 }
 
 #[derive(Debug)]

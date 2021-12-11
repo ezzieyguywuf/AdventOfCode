@@ -1,5 +1,6 @@
 use advent_of_code::util::*;
 use std::cmp::Ordering;
+use std::collections::{HashSet, VecDeque};
 
 pub fn run_a() {
   let matrix = parse();
@@ -29,9 +30,15 @@ pub fn run_b() {
   println!("day09b: ans = {}", 42);
 }
 
-fn get_basin_size(which: usize, graph: &Vec<Node>) -> u32 {
-  let mut size: u32 = 0;
-  size
+fn get_basin_size(which: usize, _graph: &Vec<Node>) -> u32 {
+  let mut _size: u32 = 0;
+  let mut _seen: HashSet<usize> = HashSet::new();
+  let mut queue: VecDeque<usize> = VecDeque::from([which]);
+
+  while let Some(visit) = queue.pop_front() {
+    println!("visiting: {}", visit);
+  }
+  _size
 }
 
 fn get_low_spots(graph: &Vec<Node>) -> Vec<usize> {
@@ -76,28 +83,14 @@ fn make_graph(matrix: &Matrix) -> Vec<Node> {
       // walls as incoming
       if row == 0 || row == matrix.rows - 1 {
         let node: &mut Node = graph.get_mut(graph_index).unwrap();
-        node.incoming.push(
-          matrix
-            .make_index(&Coord {
-              row: matrix.rows,
-              col: matrix.cols,
-            })
-            .unwrap(),
-        );
+        node.incoming.push(matrix.out_of_bounds_index());
       }
 
       // for the first and last columns, count the left and right (respectively)
       // walls as incoming
       if col == 0 || col == matrix.cols - 1 {
         let node: &mut Node = graph.get_mut(graph_index).unwrap();
-        node.incoming.push(
-          matrix
-            .make_index(&Coord {
-              row: matrix.rows,
-              col: matrix.cols,
-            })
-            .unwrap(),
-        );
+        node.incoming.push(matrix.out_of_bounds_index());
       }
 
       if let Some(right_val) = right {
@@ -150,7 +143,7 @@ fn make_graph(matrix: &Matrix) -> Vec<Node> {
 // sample output:
 // Matrix { rows: 2, cols: 5, data: [1,2,3,4,5,6,7,8,9,0] }
 fn parse() -> Matrix {
-  let lines = file_to_lines("data/09_input.txt");
+  let lines = file_to_lines("data/test.txt");
   let mut data: Vec<u32> = Vec::new();
   let mut rows = 0;
 
@@ -197,5 +190,9 @@ impl Matrix {
       return None;
     }
     Some(self.cols * coord.row + coord.col)
+  }
+
+  fn out_of_bounds_index(&self) -> usize {
+    return self.data.len();
   }
 }

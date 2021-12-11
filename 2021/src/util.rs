@@ -32,3 +32,33 @@ pub fn file_line_to_uints(fname: &str) -> Vec<u32> {
     })
     .collect()
 }
+
+#[derive(Debug)]
+struct Matrix {
+  cols: usize,
+  rows: usize,
+  data: Vec<u32>,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct Coord {
+  row: usize,
+  col: usize,
+}
+
+impl Matrix {
+  fn get_cell(&self, coord: &Coord) -> Option<&u32> {
+    self.make_index(coord).map(|i| &self.data.as_slice()[i])
+  }
+
+  fn make_index(&self, coord: &Coord) -> Option<usize> {
+    if coord.row >= self.rows || coord.col >= self.cols {
+      return None;
+    }
+    Some(self.cols * coord.row + coord.col)
+  }
+
+  fn out_of_bounds_index(&self) -> usize {
+    self.data.len()
+  }
+}

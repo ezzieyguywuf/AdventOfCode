@@ -1,9 +1,11 @@
+mod solutions;
 use aoc2023::util;
 use std::env;
+use std::io;
 
 static DAYS: [i32; 1] = [1];
 
-fn main() -> Result<(), util::Error> {
+fn main() -> io::Result<()> {
     let mut args: Vec<String> = env::args().collect();
     let _program_name = args.remove(0);
     let which_days: Vec<i32> = util::get_arg("day", &mut args).map(|days| {
@@ -13,12 +15,12 @@ fn main() -> Result<(), util::Error> {
                 Ok(val) => val,
                 Err(_) => {
                     println!("Could not parse {day_string} into an integer.");
-                    return Err(util::Error::InvalidArgument);
+                    return Err(io::ErrorKind::InvalidInput);
                 }
             };
             if !DAYS.contains(&day) {
                 println!("Day must be one of {DAYS:?}. Got {day}.");
-                return Err(util::Error::InvalidArgument);
+                return Err(io::ErrorKind::InvalidInput);
             }
             parsed_days.push(day);
         }
@@ -30,7 +32,7 @@ fn main() -> Result<(), util::Error> {
         match day {
             1 => {
                 let fname = util::get_arg("day01_data", &mut args)?;
-                println!("Got fname: {fname:?}");
+                solutions::day01::part_a(&fname)?;
             }
             n => println!("Sorry, don't know what to do with day '{n}' yet'"),
         }

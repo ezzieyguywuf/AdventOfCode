@@ -68,7 +68,9 @@ fn main() -> Result<(), Error> {
         }
     }
 
-    println!("WARNING: these arguments were not used, {args:#?}");
+    if args.len() > 0 {
+        println!("WARNING: these arguments were not used, {args:#?}");
+    }
 
     Ok(())
 }

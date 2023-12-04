@@ -1,39 +1,9 @@
+use aoc2023::util::Error;
 use std::env;
+use std::fs::File;
+use std::{fs, io, io::BufRead};
 
 static DAYS: [i32; 1] = [1];
-
-fn get_arg(target: &str, args: &mut Vec<String>) -> Result<String, Error> {
-    let mut target_arg: String = String::from("--");
-    target_arg.push_str(target);
-
-    args.iter()
-        .position(|arg| arg.starts_with(&target_arg))
-        .map_or_else(
-            || {
-                println!("Please provide a --{target} argument");
-                Err(Error::MissingArgument)
-            },
-            |i| {
-                let arg = args.remove(i).trim_start_matches(&target_arg).to_string();
-                let value: String = if arg.starts_with('=') {
-                    arg.trim_start_matches('=').to_string()
-                } else {
-                    if args.len() <= i {
-                        println!("Please provide a value for the {target} argument");
-                        return Err(Error::InvalidArgument);
-                    }
-                    args.remove(i)
-                };
-                Ok(value)
-            },
-        )
-}
-
-#[derive(Debug)]
-enum Error {
-    InvalidArgument,
-    MissingArgument,
-}
 
 fn main() -> Result<(), Error> {
     let mut args: Vec<String> = env::args().collect();
@@ -73,4 +43,36 @@ fn main() -> Result<(), Error> {
     }
 
     Ok(())
+}
+
+fn read_file(fname: &str) -> io::Result<io::Lines<io::BufReader<File>>> {
+    let file = fs::File::open(fname)?;
+    Ok(io::BufReader::new(file).lines())
+}
+
+fn get_arg(target: &str, args: &mut Vec<String>) -> Result<String, Error> {
+    let mut target_arg: String = String::from("--");
+    target_arg.push_str(target);
+
+    args.iter()
+        .position(|arg| arg.starts_with(&target_arg))
+        .map_or_else(
+            || {
+                println!("Please provide a --{target} argument");
+                Err(Error::MissingArgument)
+            },
+            |i| {
+                let arg = args.remove(i).trim_start_matches(&target_arg).to_string();
+                let value: String = if arg.starts_with('=') {
+                    arg.trim_start_matches('=').to_string()
+                } else {
+                    if args.len() <= i {
+                        println!("Please provide a value for the {target} argument");
+                        return Err(Error::InvalidArgument);
+                    }
+                    args.remove(i)
+                };
+                Ok(value)
+            },
+        )
 }

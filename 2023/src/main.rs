@@ -14,8 +14,17 @@ fn get_arg(target: &str, args: &mut Vec<String>) -> Result<String, Error> {
                 Err(Error::MissingArgument)
             },
             |i| {
-                let arg = args.remove(i);
-                Ok(arg.trim_start_matches(&target_arg).to_string())
+                let arg = args.remove(i).trim_start_matches(&target_arg).to_string();
+                let value: String = if arg.starts_with('=') {
+                    arg.trim_start_matches('=').to_string()
+                } else {
+                    if args.len() <= i {
+                        println!("Please provide a value for the {target} argument");
+                        return Err(Error::InvalidArgument);
+                    }
+                    args.remove(i)
+                };
+                Ok(value)
             },
         )
 }
@@ -29,39 +38,25 @@ enum Error {
 fn main() -> Result<(), Error> {
     let mut args: Vec<String> = env::args().collect();
     let _program_name = args.remove(0);
-    let which_days: Vec<i32> = args
-        .iter()
-        .position(|arg| arg.starts_with("--day"))
-        .map_or(Ok(DAYS.to_vec()), |i| {
-            let arg = get_arg("day", &mut args)?;
-            let days: String = if arg.starts_with('=') {
-                arg.trim_start_matches('=').to_string()
-            } else {
-                if args.len() <= i {
-                    println!("Please provide a comma-delimited list of days after --day");
+    let which_days: Vec<i32> = get_arg("day", &mut args).map(|days| {
+        let mut parsed_days: Vec<i32> = Vec::new();
+        for day_string in days.split(',') {
+            let day = match day_string.parse::<i32>() {
+                Ok(val) => val,
+                Err(_) => {
+                    println!("Could not parse {day_string} into an integer.");
                     return Err(Error::InvalidArgument);
                 }
-                args.remove(i)
             };
-
-            let mut parsed_days: Vec<i32> = Vec::new();
-            for day_string in days.split(',') {
-                let day = match day_string.parse::<i32>() {
-                    Ok(val) => val,
-                    Err(_) => {
-                        println!("Could not parse {day_string} into an integer.");
-                        return Err(Error::InvalidArgument);
-                    }
-                };
-                if !DAYS.contains(&day) {
-                    println!("Day must be one of {DAYS:?}. Got {day}.");
-                    return Err(Error::InvalidArgument);
-                }
-                parsed_days.push(day);
+            if !DAYS.contains(&day) {
+                println!("Day must be one of {DAYS:?}. Got {day}.");
+                return Err(Error::InvalidArgument);
             }
+            parsed_days.push(day);
+        }
 
-            Ok(parsed_days)
-        })?;
+        Ok(parsed_days)
+    })??;
 
     for day in which_days {
         match day {

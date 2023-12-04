@@ -1,26 +1,24 @@
-use aoc2023::util::Error;
+use aoc2023::util;
 use std::env;
-use std::fs::File;
-use std::{fs, io, io::BufRead};
 
 static DAYS: [i32; 1] = [1];
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<(), util::Error> {
     let mut args: Vec<String> = env::args().collect();
     let _program_name = args.remove(0);
-    let which_days: Vec<i32> = get_arg("day", &mut args).map(|days| {
+    let which_days: Vec<i32> = util::get_arg("day", &mut args).map(|days| {
         let mut parsed_days: Vec<i32> = Vec::new();
         for day_string in days.split(',') {
             let day = match day_string.parse::<i32>() {
                 Ok(val) => val,
                 Err(_) => {
                     println!("Could not parse {day_string} into an integer.");
-                    return Err(Error::InvalidArgument);
+                    return Err(util::Error::InvalidArgument);
                 }
             };
             if !DAYS.contains(&day) {
                 println!("Day must be one of {DAYS:?}. Got {day}.");
-                return Err(Error::InvalidArgument);
+                return Err(util::Error::InvalidArgument);
             }
             parsed_days.push(day);
         }
@@ -31,7 +29,7 @@ fn main() -> Result<(), Error> {
     for day in which_days {
         match day {
             1 => {
-                let fname = get_arg("day01_data", &mut args)?;
+                let fname = util::get_arg("day01_data", &mut args)?;
                 println!("Got fname: {fname:?}");
             }
             n => println!("Sorry, don't know what to do with day '{n}' yet'"),
@@ -43,36 +41,4 @@ fn main() -> Result<(), Error> {
     }
 
     Ok(())
-}
-
-fn read_file(fname: &str) -> io::Result<io::Lines<io::BufReader<File>>> {
-    let file = fs::File::open(fname)?;
-    Ok(io::BufReader::new(file).lines())
-}
-
-fn get_arg(target: &str, args: &mut Vec<String>) -> Result<String, Error> {
-    let mut target_arg: String = String::from("--");
-    target_arg.push_str(target);
-
-    args.iter()
-        .position(|arg| arg.starts_with(&target_arg))
-        .map_or_else(
-            || {
-                println!("Please provide a --{target} argument");
-                Err(Error::MissingArgument)
-            },
-            |i| {
-                let arg = args.remove(i).trim_start_matches(&target_arg).to_string();
-                let value: String = if arg.starts_with('=') {
-                    arg.trim_start_matches('=').to_string()
-                } else {
-                    if args.len() <= i {
-                        println!("Please provide a value for the {target} argument");
-                        return Err(Error::InvalidArgument);
-                    }
-                    args.remove(i)
-                };
-                Ok(value)
-            },
-        )
 }

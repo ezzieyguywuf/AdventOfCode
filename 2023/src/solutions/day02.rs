@@ -3,20 +3,27 @@ use std::io;
 
 pub fn part_a(fname: &str) -> io::Result<()> {
     let lines = util::read_file(fname)?;
-    let mut tot: u32 = 0;
-    for line in lines.into_iter().flatten() {
-        let game = parse_game(&line)?;
-        if game
-            .rolls
-            .iter()
-            .filter(|roll| roll.blue <= 14 && roll.red <= 12 && roll.green <= 13)
-            .collect::<Vec<_>>()
-            .len()
-            == game.rolls.len()
-        {
-            tot += game.which;
-        }
-    }
+    let tot: u32 = lines
+        .into_iter()
+        .flatten()
+        .filter_map(|line| parse_game(&line).ok())
+        .collect::<Vec<_>>()
+        .iter()
+        .filter_map(|game| {
+            if game
+                .rolls
+                .iter()
+                .filter(|roll| roll.blue <= 14 && roll.red <= 12 && roll.green <= 13)
+                .collect::<Vec<_>>()
+                .len()
+                == game.rolls.len()
+            {
+                Some(game.which)
+            } else {
+                None
+            }
+        })
+        .sum();
 
     println!("Day 02, part a, {tot}");
 

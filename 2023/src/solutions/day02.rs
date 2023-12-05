@@ -5,23 +5,19 @@ pub fn part_a(fname: &str) -> io::Result<()> {
     let lines = util::read_file(fname)?;
     let tot: u32 = lines
         .into_iter()
-        .flatten()
-        .filter_map(|line| parse_game(&line).ok())
-        .collect::<Vec<_>>()
-        .iter()
-        .filter_map(|game| {
-            if game
-                .rolls
-                .iter()
-                .filter(|roll| roll.blue <= 14 && roll.red <= 12 && roll.green <= 13)
-                .collect::<Vec<_>>()
-                .len()
-                == game.rolls.len()
-            {
-                Some(game.which)
-            } else {
-                None
+        .filter_map(|line| match parse_game(&line.ok()?) {
+            Ok(game) => {
+                if game
+                    .rolls
+                    .iter()
+                    .all(|roll| roll.blue <= 14 && roll.red <= 12 && roll.green <= 13)
+                {
+                    Some(game.which)
+                } else {
+                    None
+                }
             }
+            _ => None,
         })
         .sum();
 

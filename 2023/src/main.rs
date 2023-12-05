@@ -33,6 +33,7 @@ fn main() -> io::Result<()> {
             1 => {
                 let fname = util::get_arg("day01_data", &mut args)?;
                 solutions::day01::part_a(&fname)?;
+                solutions::day01::part_b(&fname)?;
             }
             n => println!("Sorry, don't know what to do with day '{n}' yet'"),
         }

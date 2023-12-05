@@ -27,37 +27,28 @@ pub fn part_a(fname: &str) -> io::Result<()> {
 }
 
 fn parse_game(line: &str) -> io::Result<Game> {
-  let mut split = line.split(':');
-  let which = split
-    .next()
-    .map(|prefix| match prefix.strip_prefix("Game ") {
-      Some(stripped) => parse_int(stripped),
-      None => {
-        println!("Unable to strip prefix from {prefix}");
-        Err(std::io::ErrorKind::InvalidInput.into())
-      }
-    })
-    .ok_or_else(|| {
-      println!("Unable to map thing");
-      std::io::ErrorKind::InvalidInput
-    })??;
+  match line.split_once(':') {
+    Some((prefix, right)) => {
+      let which = match prefix.strip_prefix("Game ") {
+        Some(stripped) => parse_int(stripped),
+        None => {
+          println!("Unable to strip prefix from {prefix}");
+          Err(std::io::ErrorKind::InvalidInput.into())
+        }
+      }?;
 
-  let mut rolls: Vec<Roll> = vec![];
-
-  match split.next() {
-    Some(rolls_str) => {
-      for roll in rolls_str.trim().split(';') {
+      let mut rolls: Vec<Roll> = vec![];
+      for roll in right.trim().split(';') {
         rolls.push(parse_roll(roll)?);
       }
-      Ok(())
+
+      Ok(Game { which, rolls })
     }
     None => {
-      println!("Unable to get next part of split, {split:?}");
-      Err(std::io::ErrorKind::InvalidInput)
+      println!("Could split line '{line}' on ':'");
+      Err(std::io::ErrorKind::InvalidInput.into())
     }
-  }?;
-
-  Ok(Game { which, rolls })
+  }
 }
 
 fn parse_roll(roll: &str) -> io::Result<Roll> {

@@ -63,10 +63,14 @@ fn parse_roll(roll: &str) -> io::Result<Roll> {
     let mut green = 0;
 
     for color in roll.trim().split(',') {
-        match color.trim().split(' ').collect::<Vec<_>>()[..] {
-            [n, "blue"] => blue = parse_int(n)?,
-            [n, "red"] => red = parse_int(n)?,
-            [n, "green"] => green = parse_int(n)?,
+        match color.trim().split_once(' ') {
+            Some((n, "blue")) => blue = parse_int(n)?,
+            Some((n, "red")) => red = parse_int(n)?,
+            Some((n, "green")) => green = parse_int(n)?,
+            Some((_, color)) => {
+                println!("Do not know how to parse color {color}");
+                return Err(std::io::ErrorKind::InvalidInput.into());
+            }
             _ => {
                 println!("Error parsing roll {roll}");
                 return Err(std::io::ErrorKind::InvalidInput.into());

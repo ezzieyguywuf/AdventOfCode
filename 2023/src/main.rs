@@ -43,7 +43,7 @@ fn main() -> io::Result<()> {
         }
     }
 
-    if args.is_empty() {
+    if !args.is_empty() {
         println!("WARNING: these arguments were not used, {args:#?}");
     }
 

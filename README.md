@@ -14,3 +14,9 @@ in rust.
 
 I'm starting on Day 01 (woohoo!) but I also have _lots_ of other commitments at
 the moment, so it's unclear how far I'll get...
+
+2023
+----
+
+More rust, maybe I'll actually finish this time, and maybe it'll actually be
+legible...

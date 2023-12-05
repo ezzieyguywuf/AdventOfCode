@@ -5,7 +5,7 @@ pub fn part_a(fname: &str) -> io::Result<()> {
   let lines = util::read_file(fname)?;
   let tot: u32 = lines
     .into_iter()
-    .filter_map(|line| match parse_game(&line.ok()?) {
+    .filter_map(|line| match parse_game(&line.as_ref().ok()?) {
       Ok(game) => {
         if game
           .rolls
@@ -17,7 +17,10 @@ pub fn part_a(fname: &str) -> io::Result<()> {
           None
         }
       }
-      _ => None,
+      _ => {
+        eprintln!("Unable to parse '{line:?}' into a Game");
+        None
+      }
     })
     .sum();
 
@@ -32,7 +35,7 @@ fn parse_game(line: &str) -> io::Result<Game> {
       let which = match prefix.strip_prefix("Game ") {
         Some(stripped) => parse_int(stripped),
         None => {
-          println!("Unable to strip prefix from {prefix}");
+          eprintln!("Unable to strip prefix from {prefix}");
           Err(std::io::ErrorKind::InvalidInput.into())
         }
       }?;
@@ -45,7 +48,7 @@ fn parse_game(line: &str) -> io::Result<Game> {
       Ok(Game { which, rolls })
     }
     None => {
-      println!("Could not split line '{line}' on ':'");
+      eprintln!("Could not split line '{line}' on ':'");
       Err(std::io::ErrorKind::InvalidInput.into())
     }
   }
@@ -62,11 +65,11 @@ fn parse_roll(roll: &str) -> io::Result<Roll> {
       Some((n, "red")) => red = parse_int(n)?,
       Some((n, "green")) => green = parse_int(n)?,
       Some((_, color)) => {
-        println!("Do not know how to parse color {color}");
+        eprintln!("Do not know how to parse color {color}");
         return Err(std::io::ErrorKind::InvalidInput.into());
       }
       _ => {
-        println!("Error parsing roll {roll}");
+        eprintln!("Error parsing roll {roll}");
         return Err(std::io::ErrorKind::InvalidInput.into());
       }
     }
@@ -79,7 +82,7 @@ fn parse_int(n: &str) -> io::Result<u32> {
   match n.parse::<u32>() {
     Ok(val) => Ok(val),
     Err(_) => {
-      println!("Unable to parse {n} into an integer");
+      eprintln!("Unable to parse {n} into an integer");
       Err(std::io::ErrorKind::InvalidInput.into())
     }
   }

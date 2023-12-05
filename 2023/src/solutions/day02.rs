@@ -28,7 +28,7 @@ pub fn part_a(fname: &str) -> io::Result<()> {
 
 fn parse_game(line: &str) -> io::Result<Game> {
   match line.split_once(':') {
-    Some((prefix, right)) => {
+    Some((prefix, rolls_str)) => {
       let which = match prefix.strip_prefix("Game ") {
         Some(stripped) => parse_int(stripped),
         None => {
@@ -38,14 +38,14 @@ fn parse_game(line: &str) -> io::Result<Game> {
       }?;
 
       let mut rolls: Vec<Roll> = vec![];
-      for roll in right.trim().split(';') {
+      for roll in rolls_str.trim().split(';') {
         rolls.push(parse_roll(roll)?);
       }
 
       Ok(Game { which, rolls })
     }
     None => {
-      println!("Could split line '{line}' on ':'");
+      println!("Could not split line '{line}' on ':'");
       Err(std::io::ErrorKind::InvalidInput.into())
     }
   }

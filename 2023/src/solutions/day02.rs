@@ -29,6 +29,46 @@ pub fn part_a(fname: &str) -> io::Result<()> {
   Ok(())
 }
 
+pub fn part_b(fname: &str) -> io::Result<()> {
+  let lines = util::read_file(fname)?;
+  let mut tot = 0;
+  for line in lines.flatten() {
+    match parse_game(&line) {
+      Ok(game) => {
+        let minimums = find_minimum_cubes(&game);
+        tot += minimums.red * minimums.blue * minimums.green;
+      }
+      _ => {
+        eprintln!("Unable to parse '{line:?}' into a Game");
+        // None
+      }
+    }
+  }
+
+  println!("Day 02, part b, {tot}");
+  Ok(())
+}
+
+fn find_minimum_cubes(game: &Game) -> Roll {
+  let mut red = 0;
+  let mut blue = 0;
+  let mut green = 0;
+
+  for roll in &game.rolls {
+    if roll.red > red {
+      red = roll.red;
+    }
+    if roll.blue > blue {
+      blue = roll.blue;
+    }
+    if roll.green > green {
+      green = roll.green;
+    }
+  }
+
+  Roll { red, blue, green }
+}
+
 fn parse_game(line: &str) -> io::Result<Game> {
   match line.split_once(':') {
     Some((prefix, rolls_str)) => {

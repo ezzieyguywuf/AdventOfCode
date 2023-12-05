@@ -3,7 +3,7 @@ use aoc2023::util;
 use std::env;
 use std::io;
 
-static DAYS: [i32; 1] = [1];
+static DAYS: [i32; 2] = [1, 2];
 
 fn main() -> io::Result<()> {
     let mut args: Vec<String> = env::args().collect();
@@ -34,6 +34,10 @@ fn main() -> io::Result<()> {
                 let fname = util::get_arg("day01_data", &mut args)?;
                 solutions::day01::part_a(&fname)?;
                 solutions::day01::part_b(&fname)?;
+            }
+            2 => {
+                let fname = util::get_arg("day02_data", &mut args)?;
+                solutions::day02::part_a(&fname)?;
             }
             n => println!("Sorry, don't know what to do with day '{n}' yet'"),
         }

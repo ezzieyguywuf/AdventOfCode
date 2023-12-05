@@ -54,10 +54,10 @@ fn find_digit(characters: &mut dyn Iterator<Item = char>, direction: Option<Dire
                     if check_state(character, &mut state) {
                         return Some(state);
                     }
-                    return None;
+                    None
                 })
                 .collect();
-            states.append(&mut find_new_states(&character, &dir));
+            states.append(&mut find_new_states(&character, dir));
 
             for state in &states {
                 let target = match dir {
@@ -126,7 +126,7 @@ fn find_new_states(character: &char, dir: &Direction) -> Vec<NumberState> {
         },
     }
 
-    return new_states;
+    new_states
 }
 
 fn number_to_string(number: &Number) -> String {
@@ -169,7 +169,7 @@ fn check_state(c: char, state: &mut NumberState) -> bool {
         return true;
     }
 
-    return false;
+    false
 }
 
 #[derive(Debug)]

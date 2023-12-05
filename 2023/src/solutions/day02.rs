@@ -4,19 +4,17 @@ use std::io;
 pub fn part_a(fname: &str) -> io::Result<()> {
     let lines = util::read_file(fname)?;
     let mut tot: u32 = 0;
-    for line in lines {
-        if let Ok(input) = line {
-            let game = parse_game(&input)?;
-            if game
-                .rolls
-                .iter()
-                .filter(|roll| roll.blue <= 14 && roll.red <= 12 && roll.green <= 13)
-                .collect::<Vec<_>>()
-                .len()
-                == game.rolls.len()
-            {
-                tot += game.which;
-            }
+    for line in lines.into_iter().flatten() {
+        let game = parse_game(&line)?;
+        if game
+            .rolls
+            .iter()
+            .filter(|roll| roll.blue <= 14 && roll.red <= 12 && roll.green <= 13)
+            .collect::<Vec<_>>()
+            .len()
+            == game.rolls.len()
+        {
+            tot += game.which;
         }
     }
 
@@ -30,7 +28,7 @@ fn parse_game(line: &str) -> io::Result<Game> {
     let which = split
         .next()
         .map(|prefix| match prefix.strip_prefix("Game ") {
-            Some(stripped) => parse_int(&stripped),
+            Some(stripped) => parse_int(stripped),
             None => {
                 println!("Unable to strip prefix from {prefix}");
                 Err(std::io::ErrorKind::InvalidInput.into())

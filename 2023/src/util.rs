@@ -1,10 +1,39 @@
+use std::fmt;
 use std::fs::File;
 use std::{fs, io, io::BufRead};
 
 #[derive(Debug)]
 pub enum Error {
-  InvalidArgument,
-  MissingArgument,
+  InvalidArgument(String),
+  MissingArgument(String),
+}
+
+impl fmt::Display for Error {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    match self {
+      Error::InvalidArgument(msg) => write!(f, "{msg}"),
+      Error::MissingArgument(msg) => write!(f, "{msg}"),
+    }
+  }
+}
+
+impl std::error::Error for Error {}
+
+#[derive(Debug)]
+pub enum Which {
+  PartA,
+  PartB,
+  Both,
+}
+
+pub fn parse_int(n: &str) -> io::Result<u32> {
+  match n.parse::<u32>() {
+    Ok(val) => Ok(val),
+    Err(_) => {
+      eprintln!("Unable to parse {n} into an integer");
+      Err(std::io::ErrorKind::InvalidInput.into())
+    }
+  }
 }
 
 pub fn read_file(fname: &str) -> io::Result<io::Lines<io::BufReader<File>>> {

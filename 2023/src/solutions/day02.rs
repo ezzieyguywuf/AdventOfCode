@@ -73,7 +73,7 @@ fn parse_game(line: &str) -> io::Result<Game> {
   match line.split_once(':') {
     Some((prefix, rolls_str)) => {
       let which = match prefix.strip_prefix("Game ") {
-        Some(stripped) => parse_int(stripped),
+        Some(stripped) => util::parse_int(stripped),
         None => {
           eprintln!("Unable to strip prefix from {prefix}");
           Err(std::io::ErrorKind::InvalidInput.into())
@@ -101,9 +101,9 @@ fn parse_roll(roll: &str) -> io::Result<Roll> {
 
   for color in roll.trim().split(',') {
     match color.trim().split_once(' ') {
-      Some((n, "blue")) => blue = parse_int(n)?,
-      Some((n, "red")) => red = parse_int(n)?,
-      Some((n, "green")) => green = parse_int(n)?,
+      Some((n, "blue")) => blue = util::parse_int(n)?,
+      Some((n, "red")) => red = util::parse_int(n)?,
+      Some((n, "green")) => green = util::parse_int(n)?,
       Some((_, color)) => {
         eprintln!("Do not know how to parse color {color}");
         return Err(std::io::ErrorKind::InvalidInput.into());
@@ -116,16 +116,6 @@ fn parse_roll(roll: &str) -> io::Result<Roll> {
   }
 
   Ok(Roll { blue, red, green })
-}
-
-fn parse_int(n: &str) -> io::Result<u32> {
-  match n.parse::<u32>() {
-    Ok(val) => Ok(val),
-    Err(_) => {
-      eprintln!("Unable to parse {n} into an integer");
-      Err(std::io::ErrorKind::InvalidInput.into())
-    }
-  }
 }
 
 #[derive(Debug)]

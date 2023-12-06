@@ -2,6 +2,8 @@ use std::fmt;
 use std::fs::File;
 use std::{fs, io, io::BufRead};
 
+pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
 #[derive(Debug)]
 pub enum Error {
   InvalidArgument(String),

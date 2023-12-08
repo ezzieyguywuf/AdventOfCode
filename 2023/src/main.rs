@@ -41,7 +41,7 @@ fn main() -> Result<(), Box<dyn Error>> {
       }
       3 => {
         let fname = util::get_arg("day03_data", &mut args)?;
-        solutions::day03::solve(&fname, util::Which::PartA)?;
+        solutions::day03::solve(&fname, util::Which::Both)?;
       }
       n => println!("Sorry, don't know what to do with day '{n}' yet'"),
     }

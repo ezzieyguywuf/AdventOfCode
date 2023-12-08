@@ -21,7 +21,7 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Which {
   PartA,
   PartB,

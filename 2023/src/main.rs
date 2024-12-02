@@ -3,7 +3,7 @@ use aoc2023::util;
 use std::env;
 use std::error::Error;
 
-static DAYS: [i32; 3] = [1, 2, 3];
+static DAYS: [i32; 4] = [1, 2, 3, 4];
 
 fn main() -> Result<(), Box<dyn Error>> {
   let mut args: Vec<String> = env::args().collect();
@@ -42,6 +42,10 @@ fn main() -> Result<(), Box<dyn Error>> {
       3 => {
         let fname = util::get_arg("day03_data", &mut args)?;
         solutions::day03::solve(&fname, util::Which::Both)?;
+      }
+      4 => {
+        let fname = util::get_arg("day04_data", &mut args)?;
+        solutions::day04::solve(&fname, util::Which::PartA)?;
       }
       n => println!("Sorry, don't know what to do with day '{n}' yet'"),
     }

@@ -88,4 +88,16 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_lib_unit_tests.step);
     test_step.dependOn(&run_exe_unit_tests.step);
+
+    // blah blah blah this is for building on save for finding more errors in
+    // zls
+    // ...it works! stolen from https://kristoff.it/blog/improving-your-zls-experience/
+    const exe_check = b.addExecutable(.{
+        .name = "2024",
+        .root_source_file = b.path("src/main.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const check = b.step("check", "Check if 2024 compiles");
+    check.dependOn(&exe_check.step);
 }

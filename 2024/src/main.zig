@@ -63,6 +63,11 @@ fn process_args(allocator: std.mem.Allocator) ArgParseError!Problem {
         }
     }
 
+    if (problem.day == 0) {
+        std.debug.print("Please specify which day to solve for with --day or -d\n", .{});
+        return ArgParseError.MissingArgument;
+    }
+
     return problem;
 }
 

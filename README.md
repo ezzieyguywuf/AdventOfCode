@@ -20,3 +20,8 @@ the moment, so it's unclear how far I'll get...
 
 More rust, maybe I'll actually finish this time, and maybe it'll actually be
 legible...
+
+2024
+----
+
+Trying zig this year 😁

@@ -18,11 +18,10 @@ pub fn main() !u8 {
     const problem = processArgs(allocator) catch return 1;
 
     std.debug.print("Got problem for day {d:02}\n", .{problem.day});
-    std.debug.print("Got data: (see below)\n", .{});
 
     switch (problem.day) {
         1 => {
-            const solution = try solveDay01(&problem.data);
+            const solution = try solveDay01PartA(allocator, problem.data);
             std.debug.print("Solution, Day01, parta: {d}\n", .{solution});
         },
         else => {
@@ -32,19 +31,33 @@ pub fn main() !u8 {
     return 0;
 }
 
-fn solveDay01(data: *const lines) !u64 {
+fn solveDay01PartA(allocator: std.mem.Allocator, data: lines) !u64 {
     var total: u64 = 0;
-    for (data.*) |line| {
-        std.debug.print("got line {s}\n", .{line});
+    var left_list = std.ArrayList(u64).init(allocator);
+    var right_list = std.ArrayList(u64).init(allocator);
+    defer left_list.deinit();
+    defer right_list.deinit();
+
+    for (data) |line| {
         var it = std.mem.splitScalar(u8, line, ' ');
         const left = try parseIntFromOptional(it.next());
         const right = try parseIntFromOptional(it.next());
+
+        try left_list.append(left);
+        try right_list.append(right);
 
         const tail = it.next();
         if (tail) |trailing| {
             std.debug.print("Expect line to split into two values delimited by a space, got line {s} with trailing '{s}'\n", .{ line, trailing });
             return RuntimeError.TooMuchData;
         }
+    }
+
+    std.mem.sort(u64, left_list.items, {}, std.sort.asc(u64));
+    std.mem.sort(u64, right_list.items, {}, std.sort.asc(u64));
+
+    for (left_list.items, 0..) |left, i| {
+        const right = right_list.items[i];
 
         if (left > right) {
             total = try std.math.add(u64, total, try std.math.sub(u64, left, right));
@@ -54,6 +67,18 @@ fn solveDay01(data: *const lines) !u64 {
     }
 
     return total;
+}
+
+test "day01, part A" {
+    const data: [6]string = .{
+        "3 4",
+        "4 3",
+        "2 5",
+        "1 3",
+        "3 9",
+        "3 3",
+    };
+    try std.testing.expectEqual(try solveDay01PartA(std.testing.allocator, &data), 11);
 }
 
 fn parseIntFromOptional(val: ?string) !u64 {
@@ -171,4 +196,4 @@ const RuntimeError = error{
 };
 
 const string = []const u8;
-const lines = []string;
+const lines = []const string;

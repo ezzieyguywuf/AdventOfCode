@@ -26,11 +26,69 @@ pub fn main() !u8 {
             const solutionB = try solveDay01PartB(allocator, problem.data);
             std.debug.print("Solution, Day01, partB: {d}\n", .{solutionB});
         },
+        2 => {
+            const solutionA = try solveDay02PartA(problem.data);
+            std.debug.print("Solution, Day02, partA: {d}\n", .{solutionA});
+        },
         else => {
             std.debug.print("I don't yet know how to solve day {d:02}\n", .{problem.day});
         },
     }
     return 0;
+}
+
+fn solveDay02PartA(data: lines) !u64 {
+    var total: u64 = 0;
+    var ordinality: ?Ordinality = null;
+
+    for (data) |line| {
+        var it = std.mem.splitScalar(u8, line, ' ');
+        var prev = try parseIntFromOptional(it.next());
+
+        while (it.next()) |val| {
+            const cur = try std.fmt.parseInt(u64, val, 10);
+            const dir = if (cur > prev) Ordinality.Increasing else if (cur < prev) Ordinality.Decreasing else Ordinality.Equal;
+
+            if (dir == Ordinality.Equal) {
+                break;
+            }
+
+            if (ordinality == null) {
+                ordinality = dir;
+            }
+
+            if (dir != ordinality.?) {
+                break;
+            }
+
+            prev = cur;
+        }
+
+        // this means we got to the end of the line
+        if (it.next() == null) {
+            total = try std.math.add(u64, total, 1);
+        }
+    }
+
+    return total;
+}
+
+const Ordinality = enum {
+    Increasing,
+    Decreasing,
+    Equal,
+};
+
+test "day02, part A" {
+    const data: [6]string = .{
+        "7 6 4 2 1",
+        "1 2 7 8 9",
+        "9 7 6 2 1",
+        "1 3 2 4 5",
+        "8 6 4 4 1",
+        "1 3 6 7 9",
+    };
+    try std.testing.expectEqual(2, try solveDay02PartA(&data));
 }
 
 fn solveDay01PartA(allocator: std.mem.Allocator, data: lines) !u64 {

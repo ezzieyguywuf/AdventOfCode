@@ -78,6 +78,56 @@ fn solveDay01PartA(allocator: std.mem.Allocator, data: lines) !u64 {
     return total;
 }
 
+fn solveDay01PartB(allocator: std.mem.Allocator, data: lines) !u64 {
+    var total: u64 = 0;
+    var left_list = std.ArrayList(u64).init(allocator);
+    var right_map = std.AutoHashMap(u64, u64).init(allocator);
+    defer left_list.deinit();
+    defer right_map.deinit();
+
+    for (data) |line| {
+        var it = std.mem.splitScalar(u8, line, ' ');
+        const left = try parseIntFromOptional(it.next());
+
+        // consume any number of spaces
+        var right: u64 = 0;
+        while (it.next()) |val| {
+            if (std.mem.eql(u8, val, "")) {
+                continue;
+            }
+
+            right = try parseIntFromOptional(val);
+            break;
+        }
+
+        try left_list.append(left);
+
+        var right_count: u64 = 1;
+        if (right_map.get(right)) |val| {
+            right_count += val;
+        }
+        try right_map.put(right, right_count);
+
+        if (it.peek() != null) {
+            std.debug.print("Expect line to split into two values delimited by one or more spaces, got line {s} with trailing '{s}'\n", .{ line, it.rest() });
+            return RuntimeError.TooMuchData;
+        }
+    }
+
+    for (left_list.items) |left| {
+        if (right_map.get(left)) |right| {
+            total = try std.math.add(u64, total, try std.math.mul(u64, left, right));
+        }
+    }
+
+    return total;
+}
+
+const Day01Data = struct {
+    left_data: []const u64,
+    right_data: []const u64,
+};
+
 test "day01, part A" {
     const data: [6]string = .{
         "3 4",
@@ -87,7 +137,19 @@ test "day01, part A" {
         "3 9",
         "3 3",
     };
-    try std.testing.expectEqual(try solveDay01PartA(std.testing.allocator, &data), 11);
+    try std.testing.expectEqual(11, try solveDay01PartA(std.testing.allocator, &data));
+}
+
+test "day01, part B" {
+    const data: [6]string = .{
+        "3 4",
+        "4 3",
+        "2 5",
+        "1 3",
+        "3 9",
+        "3 3",
+    };
+    try std.testing.expectEqual(31, try solveDay01PartB(std.testing.allocator, &data));
 }
 
 fn parseIntFromOptional(val: ?string) !u64 {

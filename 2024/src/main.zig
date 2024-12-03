@@ -17,10 +17,24 @@ pub fn main() !u8 {
 
     const problem = processArgs(allocator) catch return 1;
 
-    std.debug.print("Got problem for day {d}\n", .{problem.day});
+    std.debug.print("Got problem for day {d:02}\n", .{problem.day});
     std.debug.print("Got data: (see below)\n", .{});
-    for (problem.data) |line| {
-        std.debug.print("{s}\n", .{line});
+
+    switch (problem.day) {
+        1 => {
+            const solution = try solveDay01(&problem.data);
+            std.debug.print("Solution, Day01, parta: {d}\n", .{solution});
+        },
+        else => {
+            std.debug.print("I don't yet know how to solve day {d:02}\n", .{problem.day});
+        },
+    }
+    return 0;
+}
+
+fn solveDay01(data: *const lines) !u64 {
+    for (data.*) |line| {
+        std.debug.print("got line {s}\n", .{line});
     }
 
     return 0;
@@ -101,6 +115,7 @@ fn readFile(allocator: std.mem.Allocator, filename: string) !lines {
 
     return out.toOwnedSlice();
 }
+
 fn nextArg(flagname: string, args: *std.process.ArgIterator) ArgParseError!string {
     return args.next() orelse {
         std.debug.print("Missing argument after flag {s}\n", .{flagname});

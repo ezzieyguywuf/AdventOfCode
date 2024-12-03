@@ -41,14 +41,23 @@ fn solveDay01PartA(allocator: std.mem.Allocator, data: lines) !u64 {
     for (data) |line| {
         var it = std.mem.splitScalar(u8, line, ' ');
         const left = try parseIntFromOptional(it.next());
-        const right = try parseIntFromOptional(it.next());
+
+        // consume any number of spaces
+        var right: u64 = 0;
+        while (it.next()) |val| {
+            if (std.mem.eql(u8, val, "")) {
+                continue;
+            }
+
+            right = try parseIntFromOptional(val);
+            break;
+        }
 
         try left_list.append(left);
         try right_list.append(right);
 
-        const tail = it.next();
-        if (tail) |trailing| {
-            std.debug.print("Expect line to split into two values delimited by a space, got line {s} with trailing '{s}'\n", .{ line, trailing });
+        if (it.peek() != null) {
+            std.debug.print("Expect line to split into two values delimited by one or more spaces, got line {s} with trailing '{s}'\n", .{ line, it.rest() });
             return RuntimeError.TooMuchData;
         }
     }

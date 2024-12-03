@@ -33,11 +33,36 @@ pub fn main() !u8 {
 }
 
 fn solveDay01(data: *const lines) !u64 {
+    var total: u64 = 0;
     for (data.*) |line| {
         std.debug.print("got line {s}\n", .{line});
+        var it = std.mem.splitScalar(u8, line, ' ');
+        const left = try parseIntFromOptional(it.next());
+        const right = try parseIntFromOptional(it.next());
+
+        const tail = it.next();
+        if (tail) |trailing| {
+            std.debug.print("Expect line to split into two values delimited by a space, got line {s} with trailing '{s}'\n", .{ line, trailing });
+            return RuntimeError.TooMuchData;
+        }
+
+        if (left > right) {
+            total = try std.math.add(u64, total, try std.math.sub(u64, left, right));
+        } else if (right > left) {
+            total = try std.math.add(u64, total, try std.math.sub(u64, right, left));
+        }
     }
 
-    return 0;
+    return total;
+}
+
+fn parseIntFromOptional(val: ?string) !u64 {
+    const unpacked = val orelse {
+        std.debug.print("parseIntFromOptional expects a value, got null.\n", .{});
+        return ValueError.UnexpectedNull;
+    };
+
+    return try std.fmt.parseInt(u64, unpacked, 10);
 }
 
 fn processArgs(allocator: std.mem.Allocator) !Problem {
@@ -133,7 +158,17 @@ const ArgParseError = error{
     InvalidArgument,
 };
 
-const FileReadError = error{CannotParseDirname};
+const FileReadError = error{
+    CannotParseDirname,
+};
+
+const ValueError = error{
+    UnexpectedNull,
+};
+
+const RuntimeError = error{
+    TooMuchData,
+};
 
 const string = []const u8;
 const lines = []string;

@@ -39,17 +39,19 @@ pub fn main() !u8 {
 
 fn solveDay02PartA(data: lines) !u64 {
     var total: u64 = 0;
-    var ordinality: ?Ordinality = null;
 
     for (data) |line| {
         var it = std.mem.splitScalar(u8, line, ' ');
         var prev = try parseIntFromOptional(it.next());
+        var ordinality: ?Ordinality = null;
+        var safe = true;
 
         while (it.next()) |val| {
             const cur = try std.fmt.parseInt(u64, val, 10);
             const dir = if (cur > prev) Ordinality.Increasing else if (cur < prev) Ordinality.Decreasing else Ordinality.Equal;
 
             if (dir == Ordinality.Equal) {
+                safe = false;
                 break;
             }
 
@@ -58,14 +60,25 @@ fn solveDay02PartA(data: lines) !u64 {
             }
 
             if (dir != ordinality.?) {
+                safe = false;
+                break;
+            }
+
+            const diff = switch (dir) {
+                Ordinality.Increasing => cur - prev,
+                Ordinality.Decreasing => prev - cur,
+                else => unreachable,
+            };
+
+            if (diff < 1 or diff > 3) {
+                safe = false;
                 break;
             }
 
             prev = cur;
         }
 
-        // this means we got to the end of the line
-        if (it.next() == null) {
+        if (safe) {
             total = try std.math.add(u64, total, 1);
         }
     }

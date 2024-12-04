@@ -32,6 +32,10 @@ pub fn main() !u8 {
             const solutionB = try solveDay02(allocator, problem.data, true);
             std.debug.print("Solution, Day02, partB: {d}\n", .{solutionB});
         },
+        3 => {
+            const solutionA = try solveDay03(problem.data);
+            std.debug.print("Solution, Day03, partA: {d}\n", .{solutionA});
+        },
         else => {
             std.debug.print("I don't yet know how to solve day {d:02}\n", .{problem.day});
         },
@@ -39,40 +43,24 @@ pub fn main() !u8 {
     return 0;
 }
 
-// fn solveDay02PartBBruteForce(allocator: std.mem.Allocator, data: lines) !u64 {
-//     for (data) |line| {
-//         var levels = std.ArrayList(u64).init(allocator);
-//         defer levels.deinit();
+fn solveDay03(_: lines) !u64 {
+    return 0;
+}
 
-//         var it = std.mem.splitScalar(u8, line, ' ');
-//         while (it.next()) |val| {
-//             try levels.append(try std.fmt.parseInt(u64, val, 10));
-//         }
+test "day03" {
+    const data: [1]string = .{
+        "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))",
+    };
 
-//         const safe = isSafeBruteForce(levels.items);
-//         if (safe) {
-//             std.debug.print("SAFE   {s}\n", .{line});
-//         } else {
-//             std.debug.print("UNSAFE {s}\n", .{line});
-//         }
-//     }
-// }
-
-// fn isSafeBruteForce(levels: []u8) bool {
-//     var increasing = false;
-//     if (levels[1] > levels[0]) {
-//         increasing = true;
-//     }
-
-//     var allSafe = false;
-// }
+    try std.testing.expectEqual(161, try solveDay03(&data));
+}
 
 // NOTE: I never actually finished this, I just brute-forced it in c++ somewhere
 fn solveDay02(allocator: std.mem.Allocator, data: lines, allow_dampening: bool) !u64 {
     var total: u64 = 0;
 
     for (data) |line| {
-        std.debug.print("LINE: {s}\n", .{line});
+        // std.debug.print("LINE: {s}\n", .{line});
         var levels = std.ArrayList(u64).init(allocator);
         defer levels.deinit();
         var it = std.mem.splitScalar(u8, line, ' ');
@@ -97,15 +85,15 @@ fn solveDay02(allocator: std.mem.Allocator, data: lines, allow_dampening: bool) 
 
             isSafe = checkSafe(prev, cur, next);
 
-            std.debug.print("  isSafe: {any}, i: {d}, dampened: {any}, prev: {?d}, cur: {d}, next: {?d}\n", .{ isSafe, i, dampened, prev, cur, next });
+            // std.debug.print("  isSafe: {any}, i: {d}, dampened: {any}, prev: {?d}, cur: {d}, next: {?d}\n", .{ isSafe, i, dampened, prev, cur, next });
             if (!isSafe) {
                 if (allow_dampening and !dampened) {
                     // try removing cur
                     const localCur = next;
                     const localNext = if (i < (levels.items.len - 2)) levels.items[i + 2] else null;
-                    std.debug.print("  tried removing cur, prev: {?d}, localCur: {?d}, localNext: {?d}\n", .{ prev, localCur, localNext });
+                    // std.debug.print("  tried removing cur, prev: {?d}, localCur: {?d}, localNext: {?d}\n", .{ prev, localCur, localNext });
                     if (localCur != null and checkSafe(prev, localCur.?, localNext)) {
-                        std.debug.print("  dampened\n", .{});
+                        // std.debug.print("  dampened\n", .{});
                         dampened = true;
                         isSafe = true;
                         i += 1;
@@ -115,10 +103,10 @@ fn solveDay02(allocator: std.mem.Allocator, data: lines, allow_dampening: bool) 
                     // try remove prev
                     const local_i_prev = if (i > 1) i - 2 else null;
                     const localPrev = if (local_i_prev) |index| levels.items[index] else null;
-                    std.debug.print("  tried removing prev localPrev: {?d}, cur: {d}, next: {?d}\n", .{ localPrev, cur, next });
+                    // std.debug.print("  tried removing prev localPrev: {?d}, cur: {d}, next: {?d}\n", .{ localPrev, cur, next });
 
                     if (checkSafe(localPrev, cur, next)) {
-                        std.debug.print("  dampened2\n", .{});
+                        // std.debug.print("  dampened2\n", .{});
                         dampened = true;
                         isSafe = true;
                         i_prev = local_i_prev;
@@ -128,9 +116,9 @@ fn solveDay02(allocator: std.mem.Allocator, data: lines, allow_dampening: bool) 
                     // try remove next
                     const local_i_next = if (i < (levels.items.len - 2)) i + 2 else null;
                     const localNext = if (local_i_next) |index| levels.items[index] else null;
-                    std.debug.print("  tried removing next prev: {?d}, cur: {d}, localNext: {?d}\n", .{ prev, cur, localNext });
+                    // std.debug.print("  tried removing next prev: {?d}, cur: {d}, localNext: {?d}\n", .{ prev, cur, localNext });
                     if (checkSafe(prev, cur, localNext)) {
-                        std.debug.print("  dampened3\n", .{});
+                        // std.debug.print("  dampened3\n", .{});
                         dampened = true;
                         isSafe = true;
                         // this is incremented below;
@@ -160,10 +148,10 @@ fn solveDay02(allocator: std.mem.Allocator, data: lines, allow_dampening: bool) 
         if (isSafe) {
             total += 1;
             // std.debug.print("  increasing total, new total: {d}\n", .{total});
-            std.debug.print("SAFE   {s}\n", .{line});
+            // std.debug.print("SAFE   {s}\n", .{line});
         } else {
             // std.debug.print("  NOT INCREASING, total still: {d}, LINE: {s}\n", .{ total, line });
-            std.debug.print("UNSAFE {s}\n", .{line});
+            // std.debug.print("UNSAFE {s}\n", .{line});
         }
     }
 

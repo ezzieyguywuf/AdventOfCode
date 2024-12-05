@@ -67,29 +67,25 @@ fn solveDay03(data: lines) !u64 {
             const consumedInteger1 = consumeInteger(i, line);
             if (!consumedInteger1.has_data) {
                 // std.debug.print("  did not find number at i = {d}, moving on\n", .{i});
-                // i = incrementIndex(i, 1, line) catch break;
                 continue;
             }
             if (consumedInteger1.i >= line.len) break;
 
             // match ,
-            // i = incrementIndex(consumedInteger1.i, 1, line) catch break;
             if (line[consumedInteger1.i] != ',') {
-                // std.debug.print("  did not find , at i = {d}, moving on\n", .{i});
+                // std.debug.print("  did not find , at i = {d}, moving on\n", .{consumedInteger1.i});
                 continue;
             }
 
             // match ###
             const consumedInteger2 = consumeInteger(consumedInteger1.i, line);
             if (!consumedInteger2.has_data) {
-                // std.debug.print("  did not find number at i = {d}, moving on\n", .{i});
-                // i = incrementIndex(i, 1, line) catch break;
+                // std.debug.print("  did not find number at i = {d}, moving on\n", .{consumedInteger2.i});
                 continue;
             }
             if (consumedInteger2.i >= line.len) break;
 
             // match )
-            // i = incrementIndex(consumedInteger2.i, 1, line) catch break;
             if (line[consumedInteger2.i] != ')') {
                 // std.debug.print("  did not find ) at i = {d}, moving on\n", .{i});
                 continue;
@@ -102,6 +98,10 @@ fn solveDay03(data: lines) !u64 {
             // });
 
             total += consumedInteger1.val * consumedInteger2.val;
+            // std.debug.print("mul({d},{d})\n", .{
+            //     consumedInteger1.val,
+            //     consumedInteger2.val,
+            // });
 
             i = incrementIndex(consumedInteger2.i, 1, line) catch break;
         }
@@ -132,7 +132,6 @@ fn consumeInteger(i: usize, data: string) ConsumedInteger {
 
     var n: usize = 3;
     var operand: [3:0]u8 = .{'0'} ** 3;
-    // std.debug.print("  next 5 chars: {s}\n", .{data[i .. i + 5]});
     while (n > 0) {
         out.i = incrementIndex(out.i, 1, data) catch return out;
         const char = data[out.i];
@@ -154,14 +153,17 @@ fn consumeInteger(i: usize, data: string) ConsumedInteger {
     }
 
     if (n == 3) {
+        // std.debug.print("  n == 3, returning\n", .{});
         return out;
+    }
+    if (n == 0) {
+        out.i = incrementIndex(out.i, 1, data) catch return out;
     }
 
     // std.debug.print("  trying to parse '{s}'\n", .{operand});
     const num = std.fmt.parseInt(u64, &operand, 10) catch return out;
     // std.debug.print("  Found number, {d}\n", .{num});
 
-    // out.i = incrementIndex(out.i, 1, data) catch return out;
     out.val = num;
     out.has_data = true;
 
@@ -170,24 +172,20 @@ fn consumeInteger(i: usize, data: string) ConsumedInteger {
     return out;
 }
 
-test "day03" {
-    // 2
-    // 4
-    // 3
-    // 7
-    // 5
-    // 5
-    // 32
-    // 64
-    // 11
-    // 8
-    // 8
-    // 5
+test "day03, sample" {
     const data: [1]string = .{
         "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))",
     };
 
     try std.testing.expectEqual(161, try solveDay03(&data));
+}
+
+test "day03, real life" {
+    const data: [1]string = .{
+        "$  mul(402,190))&<why(",
+    };
+
+    try std.testing.expectEqual(76380, try solveDay03(&data));
 }
 
 // NOTE: I never actually finished this, I just brute-forced it in c++ somewhere
@@ -616,17 +614,29 @@ fn readFile(allocator: std.mem.Allocator, filename: string) !lines {
     const file = try dir.openFile(targetFile, .{});
     defer file.close();
 
-    // stolen from https://stackoverflow.com/a/68879352
+    // see
+    // https://discord.com/channels/605571803288698900/1314058119067734089/1314060567576580116
+    // for more context/details
     var buf_reader = std.io.bufferedReader(file.reader());
     var in_stream = buf_reader.reader();
 
-    var buf: [1024]u8 = undefined;
-    var out = std.ArrayList(string).init(allocator);
-    while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
-        try out.append(try allocator.dupe(u8, line));
+    var out = std.ArrayListUnmanaged(string){};
+    defer {
+        for (out.items) |line| allocator.free(line);
+        out.deinit(allocator);
+    }
+    var line = std.ArrayListUnmanaged(u8){};
+    defer line.deinit(allocator);
+
+    while (in_stream.streamUntilDelimiter(line.writer(allocator), '\n', null)) {
+        defer line.clearRetainingCapacity();
+        try out.append(allocator, try line.toOwnedSlice(allocator));
+    } else |err| switch (err) {
+        error.EndOfStream => {},
+        else => return err,
     }
 
-    return out.toOwnedSlice();
+    return out.toOwnedSlice(allocator);
 }
 
 fn nextArg(flagname: string, args: *std.process.ArgIterator) ArgParseError!string {

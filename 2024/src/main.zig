@@ -38,11 +38,167 @@ pub fn main() !u8 {
             const solutionB = try solveDay03(problem.data, true);
             std.debug.print("Solution, Day03, partB: {d}\n", .{solutionB});
         },
+        4 => {
+            const solutionA = try solveDay04(allocator, problem.data);
+            std.debug.print("Solution, Day04, partA: {d}\n", .{solutionA});
+        },
         else => {
             std.debug.print("I don't yet know how to solve day {d:02}\n", .{problem.day});
         },
     }
     return 0;
+}
+
+fn solveDay04(allocator: std.mem.Allocator, data: lines) !u64 {
+    // (row, col) location of each X
+    var xLocs = std.ArrayListUnmanaged([2]usize){};
+    defer xLocs.deinit(allocator);
+
+    for (data, 0..) |row, i| {
+        for (row, 0..) |char, j| {
+            if (char == 'X') {
+                try xLocs.append(allocator, .{ i, j });
+            }
+        }
+    }
+
+    var total: u64 = 0;
+    for (xLocs.items) |coords| {
+        total += countXmas(coords, data);
+    }
+    return total;
+}
+
+fn countXmas(coords: [2]usize, data: lines) u64 {
+    var total: u64 = 0;
+
+    // std.debug.print("Checking row: {d}, col{d}\n", .{ coords[0], coords[1] });
+    if (checkDirection(coords, data, .{ Direction.Up, Direction.Left })) {
+        // std.debug.print("  match UpLeft\n", .{});
+        total += 1;
+    }
+    if (checkDirection(coords, data, .{ Direction.Up, null })) {
+        // std.debug.print("  match Up\n", .{});
+        total += 1;
+    }
+    if (checkDirection(coords, data, .{ Direction.Up, Direction.Right })) {
+        // std.debug.print("  match UpRight\n", .{});
+        total += 1;
+    }
+    if (checkDirection(coords, data, .{ null, Direction.Right })) {
+        // std.debug.print("  match Right\n", .{});
+        total += 1;
+    }
+    if (checkDirection(coords, data, .{ Direction.Down, Direction.Right })) {
+        // std.debug.print("  match DownRight\n", .{});
+        total += 1;
+    }
+    if (checkDirection(coords, data, .{ Direction.Down, null })) {
+        // std.debug.print("  match Down\n", .{});
+        total += 1;
+    }
+    if (checkDirection(coords, data, .{ Direction.Down, Direction.Left })) {
+        // std.debug.print("  match DownLeft\n", .{});
+        total += 1;
+    }
+    if (checkDirection(coords, data, .{ null, Direction.Left })) {
+        // std.debug.print("  match Left\n", .{});
+        total += 1;
+    }
+
+    return total;
+}
+
+fn checkDirection(coords: [2]usize, data: lines, dir: [2]?Direction) bool {
+    const xmas = "XMAS";
+    var checkIndex: usize = 0;
+    var row = coords[0];
+    var col = coords[1];
+
+    // std.debug.print("    want {c} , checkIndex: {d}, row: {d}, col: {d}, dir[0]: {?s}, dir[1]: {?s}, data.len: {d}, data[0].len: {d}\n", .{
+    //     xmas[checkIndex],
+    //     checkIndex,
+    //     row,
+    //     col,
+    //     if (dir[0]) |val| std.enums.tagName(Direction, val) else "null",
+    //     if (dir[1]) |val| std.enums.tagName(Direction, val) else "null",
+    //     data.len,
+    //     data[0].len,
+    // });
+    while (checkIndex < 4 and row >= 0 and row < data.len and col >= 0 and col < data[0].len) {
+        const char = data[row][col];
+        // std.debug.print("    want {c} have {c}, checkIndex: {d}, row: {d}, col: {d}, dir[0]: {?s}, dir[1]: {?s}\n", .{
+        //     xmas[checkIndex],
+        //     char,
+        //     checkIndex,
+        //     row,
+        //     col,
+        //     if (dir[0]) |val| std.enums.tagName(Direction, val) else "null",
+        //     if (dir[1]) |val| std.enums.tagName(Direction, val) else "null",
+        // });
+        if (char == xmas[checkIndex]) {
+            // std.debug.print("    MATCH row: {d}, col{d}, char: {c}\n", .{
+            //     row,
+            //     col,
+            //     char,
+            // });
+            checkIndex += 1;
+        } else {
+            return false;
+        }
+        if (checkIndex == 4) {
+            return true;
+        }
+        if (dir[0]) |val| {
+            switch (val) {
+                Direction.Up => {
+                    if (row == 0) {
+                        return false;
+                    }
+                    row -= 1;
+                },
+                Direction.Down => row += 1,
+                else => {},
+            }
+        }
+        if (dir[1]) |val| {
+            switch (val) {
+                Direction.Left => {
+                    if (col == 0) {
+                        return false;
+                    }
+
+                    col -= 1;
+                },
+                Direction.Right => col += 1,
+                else => {},
+            }
+        }
+    }
+    return false;
+}
+
+const Direction = enum {
+    Up,
+    Right,
+    Down,
+    Left,
+};
+
+test "day 04, sample" {
+    const data: [10]string = .{
+        "MMMSXXMASM",
+        "MSAMXMSMSA",
+        "AMXSXMAAMM",
+        "MSAMASMSMX",
+        "XMASAMXAMM",
+        "XXAMMXXAMA",
+        "SMSMSASXSS",
+        "SAXAMASAAA",
+        "MAMMMXMMMM",
+        "MXMXAXMASX",
+    };
+    try std.testing.expectEqual(18, try solveDay04(std.testing.allocator, &data));
 }
 
 fn solveDay03(data: lines, withEnableDisable: bool) !u64 {

@@ -43,11 +43,146 @@ pub fn main() !u8 {
     return 0;
 }
 
-fn solveDay03(_: lines) !u64 {
-    return 0;
+fn solveDay03(data: lines) !u64 {
+    var total: u64 = 0;
+    // slide a window searching for `mul(`
+    for (data) |line| {
+        var i: usize = 0;
+        while (i < line.len) {
+            // std.debug.print("i: {d}, c: {c}\n", .{ i, line[i] });
+            // match mul(
+            if (i >= line.len - 4) {
+                // std.debug.print("  cannot check for mul(, breaking, i = {d}\n", .{i});
+                break;
+            }
+            const mul = line[i .. i + 4];
+            if (!std.mem.eql(u8, mul, "mul(")) {
+                i = incrementIndex(i, 1, line) catch break;
+                continue;
+            }
+            // std.debug.print("  found mul(, moving on\n", .{});
+            i = incrementIndex(i, 3, line) catch break;
+
+            // match ###
+            const consumedInteger1 = consumeInteger(i, line);
+            if (!consumedInteger1.has_data) {
+                // std.debug.print("  did not find number at i = {d}, moving on\n", .{i});
+                // i = incrementIndex(i, 1, line) catch break;
+                continue;
+            }
+            if (consumedInteger1.i >= line.len) break;
+
+            // match ,
+            // i = incrementIndex(consumedInteger1.i, 1, line) catch break;
+            if (line[consumedInteger1.i] != ',') {
+                // std.debug.print("  did not find , at i = {d}, moving on\n", .{i});
+                continue;
+            }
+
+            // match ###
+            const consumedInteger2 = consumeInteger(consumedInteger1.i, line);
+            if (!consumedInteger2.has_data) {
+                // std.debug.print("  did not find number at i = {d}, moving on\n", .{i});
+                // i = incrementIndex(i, 1, line) catch break;
+                continue;
+            }
+            if (consumedInteger2.i >= line.len) break;
+
+            // match )
+            // i = incrementIndex(consumedInteger2.i, 1, line) catch break;
+            if (line[consumedInteger2.i] != ')') {
+                // std.debug.print("  did not find ) at i = {d}, moving on\n", .{i});
+                continue;
+            }
+
+            // std.debug.print("  multiplying {d} by {d} to add to total of {d}\n", .{
+            //     consumedInteger1.val,
+            //     consumedInteger2.val,
+            //     total,
+            // });
+
+            total += consumedInteger1.val * consumedInteger2.val;
+
+            i = incrementIndex(consumedInteger2.i, 1, line) catch break;
+        }
+    }
+    return total;
+}
+
+const ConsumedInteger = struct {
+    i: usize = 0,
+    val: u64 = 0,
+    has_data: bool = false,
+};
+
+fn incrementIndex(i: usize, amt: usize, data: string) !usize {
+    if (i + amt < data.len) {
+        return i + amt;
+    }
+
+    return ValueError.OutOfBounds;
+}
+
+fn consumeInteger(i: usize, data: string) ConsumedInteger {
+    var out: ConsumedInteger = .{
+        .i = i,
+        .val = 0,
+        .has_data = false,
+    };
+
+    var n: usize = 3;
+    var operand: [3:0]u8 = .{'0'} ** 3;
+    // std.debug.print("  next 5 chars: {s}\n", .{data[i .. i + 5]});
+    while (n > 0) {
+        out.i = incrementIndex(out.i, 1, data) catch return out;
+        const char = data[out.i];
+        // std.debug.print("  char: {c}\n", .{char});
+        if (char == ',' or char == ')') {
+            // std.debug.print("  breaking, found {c} at i = {d}\n", .{ char, out.i });
+            break;
+        }
+
+        // std.debug.print("  Trying to parse {c} as int\n", .{char});
+        _ = std.fmt.parseInt(u8, &.{char}, 10) catch return out;
+
+        // shift all values in the array left by one, then "append" the new
+        // value to the end.
+        std.mem.rotate(u8, &operand, 1);
+        operand[2] = char;
+        // std.debug.print("  ...success, operand currently {s}\n", .{operand});
+        n -= 1;
+    }
+
+    if (n == 3) {
+        return out;
+    }
+
+    // std.debug.print("  trying to parse '{s}'\n", .{operand});
+    const num = std.fmt.parseInt(u64, &operand, 10) catch return out;
+    // std.debug.print("  Found number, {d}\n", .{num});
+
+    // out.i = incrementIndex(out.i, 1, data) catch return out;
+    out.val = num;
+    out.has_data = true;
+
+    // std.debug.print("  returning out.i: {d}\n", .{out.i});
+
+    return out;
 }
 
 test "day03" {
+    // 2
+    // 4
+    // 3
+    // 7
+    // 5
+    // 5
+    // 32
+    // 64
+    // 11
+    // 8
+    // 8
+    // 5
     const data: [1]string = .{
         "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))",
     };
@@ -517,6 +652,7 @@ const FileReadError = error{
 
 const ValueError = error{
     UnexpectedNull,
+    OutOfBounds,
 };
 
 const RuntimeError = error{

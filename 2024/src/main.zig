@@ -33,8 +33,10 @@ pub fn main() !u8 {
             std.debug.print("Solution, Day02, partB: {d}\n", .{solutionB});
         },
         3 => {
-            const solutionA = try solveDay03(problem.data);
+            const solutionA = try solveDay03(problem.data, false);
             std.debug.print("Solution, Day03, partA: {d}\n", .{solutionA});
+            const solutionB = try solveDay03(problem.data, true);
+            std.debug.print("Solution, Day03, partB: {d}\n", .{solutionB});
         },
         else => {
             std.debug.print("I don't yet know how to solve day {d:02}\n", .{problem.day});
@@ -43,12 +45,42 @@ pub fn main() !u8 {
     return 0;
 }
 
-fn solveDay03(data: lines) !u64 {
+fn solveDay03(data: lines, withEnableDisable: bool) !u64 {
     var total: u64 = 0;
+    var enabled: bool = true;
     // slide a window searching for `mul(`
     for (data) |line| {
         var i: usize = 0;
         while (i < line.len) {
+            if (withEnableDisable and !enabled) {
+                if (i >= line.len - 4) {
+                    break;
+                }
+
+                const do = line[i .. i + 4];
+                if (std.mem.eql(u8, do, "do()")) {
+                    enabled = true;
+                    i = incrementIndex(i, 3, line) catch break;
+                }
+            }
+            if (!enabled) {
+                i = incrementIndex(i, 1, line) catch break;
+                continue;
+            }
+            if (withEnableDisable and enabled) {
+                // std.debug.print("  Checking for don't\n", .{});
+                if (i < line.len - 7) {
+                    const dont = line[i .. i + 7];
+                    // std.debug.print("  Checking string {s}\n", .{dont});
+                    if (std.mem.eql(u8, dont, "don't()")) {
+                        // std.debug.print("  got don't!\n", .{});
+                        enabled = false;
+                        i = incrementIndex(i, 6, line) catch break;
+                        continue;
+                    }
+                }
+            }
+
             // std.debug.print("i: {d}, c: {c}\n", .{ i, line[i] });
             // match mul(
             if (i >= line.len - 4) {
@@ -173,11 +205,16 @@ fn consumeInteger(i: usize, data: string) ConsumedInteger {
 }
 
 test "day03, sample" {
-    const data: [1]string = .{
+    const dataA: [1]string = .{
         "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))",
     };
 
-    try std.testing.expectEqual(161, try solveDay03(&data));
+    try std.testing.expectEqual(161, try solveDay03(&dataA, false));
+
+    const dataB: [1]string = .{
+        "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))",
+    };
+    try std.testing.expectEqual(48, try solveDay03(&dataB, true));
 }
 
 test "day03, real life" {
@@ -185,7 +222,7 @@ test "day03, real life" {
         "$  mul(402,190))&<why(",
     };
 
-    try std.testing.expectEqual(76380, try solveDay03(&data));
+    try std.testing.expectEqual(76380, try solveDay03(&data, false));
 }
 
 // NOTE: I never actually finished this, I just brute-forced it in c++ somewhere

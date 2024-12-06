@@ -69,6 +69,260 @@ fn solveDay04(allocator: std.mem.Allocator, data: lines) !u64 {
     return total;
 }
 
+fn solveDay04B(allocator: std.mem.Allocator, data: lines) !u64 {
+    // (row, col) location of each X
+    var mLocs = std.ArrayListUnmanaged(Coord){};
+    defer mLocs.deinit(allocator);
+
+    for (data, 0..) |row, i| {
+        for (row, 0..) |char, j| {
+            if (char == 'M') {
+                try mLocs.append(allocator, .{
+                    .row = i,
+                    .col = j,
+                });
+            }
+        }
+    }
+
+    var masMap = std.AutoHashMapUnmanaged(Coord, []MatchedDiagonal){};
+    defer {
+        var it = masMap.iterator();
+        while (it.next()) |diag| {
+            allocator.free(diag.value_ptr.*);
+        }
+        masMap.deinit(allocator);
+    }
+
+    for (mLocs.items) |coord| {
+        const diags = try findDiagonals(allocator, coord, data);
+        if (diags.len > 0) {
+            try masMap.put(allocator, coord, diags);
+            // std.debug.print("  FOUND MAS at row: {d}, col: {d}\n", .{ coord.row, coord.col });
+        }
+    }
+
+    var it = masMap.iterator();
+    var total: u64 = 0;
+    outer: while (it.next()) |entry| {
+        const row = entry.key_ptr.row;
+        const col = entry.key_ptr.col;
+        // std.debug.print("Checking for Xes at row: {d}, col {d}\n", .{ row, col });
+
+        for (entry.value_ptr.*) |*diagonal| {
+            // std.debug.print("  Checking dir: {?s}\n", .{std.enums.tagName(Diagonal, diagonal.dir)});
+            if (diagonal.isMatched) {
+                // std.debug.print("  skipping b/c that diag is already matched\n", .{});
+                continue;
+            }
+            var check1: ?Mas = null;
+            var check2: ?Mas = null;
+            switch (diagonal.dir) {
+                Diagonal.UpLeft => {
+                    check1 = Mas{
+                        .coord = Coord{
+                            .row = row,
+                            .col = col - 2,
+                        },
+                        .dir = Diagonal.UpRight,
+                    };
+                    check2 = Mas{
+                        .coord = Coord{
+                            .row = row - 2,
+                            .col = col,
+                        },
+                        .dir = Diagonal.DownLeft,
+                    };
+                },
+                Diagonal.UpRight => {
+                    check1 = Mas{
+                        .coord = Coord{
+                            .row = row,
+                            .col = col + 2,
+                        },
+                        .dir = Diagonal.UpLeft,
+                    };
+                    check2 = Mas{
+                        .coord = Coord{
+                            .row = row - 2,
+                            .col = col,
+                        },
+                        .dir = Diagonal.DownRight,
+                    };
+                },
+                Diagonal.DownRight => {
+                    check1 = Mas{
+                        .coord = Coord{
+                            .row = row,
+                            .col = col + 2,
+                        },
+                        .dir = Diagonal.DownLeft,
+                    };
+                    check2 = Mas{
+                        .coord = Coord{
+                            .row = row + 2,
+                            .col = col,
+                        },
+                        .dir = Diagonal.UpRight,
+                    };
+                },
+                Diagonal.DownLeft => {
+                    check1 = Mas{
+                        .coord = Coord{
+                            .row = row,
+                            .col = col - 2,
+                        },
+                        .dir = Diagonal.DownRight,
+                    };
+                    check2 = Mas{
+                        .coord = Coord{
+                            .row = row + 2,
+                            .col = col,
+                        },
+                        .dir = Diagonal.UpLeft,
+                    };
+                },
+            }
+            // std.debug.print("  check1 row: {d}, col: {d}\n", .{ check1.?.coord.row, check1.?.coord.col });
+            if (masMap.getPtr(check1.?.coord)) |checkDiags| {
+                // std.debug.print("    FOUND in masMap\n", .{});
+                for (checkDiags.*) |*checkDiag| {
+                    // std.debug.print("    checking diag: {?s}\n", .{std.enums.tagName(Diagonal, checkDiag.dir)});
+                    if (checkDiag.dir == check1.?.dir and checkDiag.isMatched == false) {
+                        checkDiag.*.isMatched = true;
+                        diagonal.*.isMatched = true;
+                        total += 1;
+                        continue :outer;
+                    }
+                }
+            }
+            // std.debug.print("  check2 row: {d}, col: {d}\n", .{ check2.?.coord.row, check2.?.coord.col });
+            if (masMap.getPtr(check2.?.coord)) |checkDiags| {
+                // std.debug.print("    FOUND in masMap\n", .{});
+                for (checkDiags.*) |*checkDiag| {
+                    // std.debug.print("    checking diag: {?s}\n", .{std.enums.tagName(Diagonal, checkDiag.dir)});
+                    if (checkDiag.dir == check2.?.dir and checkDiag.isMatched == false) {
+                        checkDiag.*.isMatched = true;
+                        diagonal.*.isMatched = true;
+                        total += 1;
+                        continue :outer;
+                    }
+                }
+            }
+        }
+    }
+    return total;
+}
+
+fn findDiagonals(allocator: std.mem.Allocator, coord: Coord, data: lines) ![]MatchedDiagonal {
+    var diags = std.ArrayListUnmanaged(MatchedDiagonal){};
+    defer diags.deinit(allocator);
+
+    if (searchForMas(coord, data, Diagonal.UpLeft)) {
+        try diags.append(allocator, .{
+            .dir = Diagonal.UpLeft,
+            .isMatched = false,
+        });
+    }
+    if (searchForMas(coord, data, Diagonal.UpRight)) {
+        try diags.append(allocator, .{
+            .dir = Diagonal.UpRight,
+            .isMatched = false,
+        });
+    }
+    if (searchForMas(coord, data, Diagonal.DownRight)) {
+        try diags.append(allocator, .{
+            .dir = Diagonal.DownRight,
+            .isMatched = false,
+        });
+    }
+    if (searchForMas(coord, data, Diagonal.DownLeft)) {
+        try diags.append(allocator, .{
+            .dir = Diagonal.DownLeft,
+            .isMatched = false,
+        });
+    }
+
+    return diags.toOwnedSlice(allocator);
+}
+
+fn searchForMas(coord: Coord, data: lines, dir: Diagonal) bool {
+    const MAS = "MAS";
+    var targetIndex: usize = 0;
+    var row = coord.row;
+    var col = coord.col;
+
+    while (targetIndex < 3 and row >= 0 and row < data.len and col >= 0 and col < data[0].len) {
+        const char = data[row][col];
+        if (char == MAS[targetIndex]) {
+            targetIndex += 1;
+        } else {
+            return false;
+        }
+        if (targetIndex == 3) {
+            return true;
+        }
+        switch (dir) {
+            Diagonal.UpLeft => {
+                if (row == 0) {
+                    return false;
+                }
+                row -= 1;
+
+                if (col == 0) {
+                    return false;
+                }
+
+                col -= 1;
+            },
+            Diagonal.UpRight => {
+                if (row == 0) {
+                    return false;
+                }
+
+                row -= 1;
+                col += 1;
+            },
+            Diagonal.DownRight => {
+                row += 1;
+                col += 1;
+            },
+            Diagonal.DownLeft => {
+                if (col == 0) {
+                    return false;
+                }
+
+                col -= 1;
+                row += 1;
+            },
+        }
+    }
+
+    return false;
+}
+
+const Coord = struct {
+    row: usize,
+    col: usize,
+};
+
+const Mas = struct {
+    coord: Coord,
+    dir: Diagonal,
+};
+
+const MatchedDiagonal = struct {
+    isMatched: bool,
+    dir: Diagonal,
+};
+
+const Diagonal = enum {
+    UpLeft,
+    UpRight,
+    DownRight,
+    DownLeft,
+};
+
 fn countXmas(coords: [2]usize, data: lines) u64 {
     var total: u64 = 0;
 
@@ -199,6 +453,22 @@ test "day 04, sample" {
         "MXMXAXMASX",
     };
     try std.testing.expectEqual(18, try solveDay04(std.testing.allocator, &data));
+}
+
+test "day 04, sample B" {
+    const data: [10]string = .{
+        "MMMSXXMASM",
+        "MSAMXMSMSA",
+        "AMXSXMAAMM",
+        "MSAMASMSMX",
+        "XMASAMXAMM",
+        "XXAMMXXAMA",
+        "SMSMSASXSS",
+        "SAXAMASAAA",
+        "MAMMMXMMMM",
+        "MXMXAXMASX",
+    };
+    try std.testing.expectEqual(9, try solveDay04B(std.testing.allocator, &data));
 }
 
 fn solveDay03(data: lines, withEnableDisable: bool) !u64 {

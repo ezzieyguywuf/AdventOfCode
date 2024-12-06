@@ -41,6 +41,8 @@ pub fn main() !u8 {
         4 => {
             const solutionA = try solveDay04(allocator, problem.data);
             std.debug.print("Solution, Day04, partA: {d}\n", .{solutionA});
+            const solutionB = try solveDay04B(allocator, problem.data);
+            std.debug.print("Solution, Day04, partB: {d}\n", .{solutionB});
         },
         else => {
             std.debug.print("I don't yet know how to solve day {d:02}\n", .{problem.day});

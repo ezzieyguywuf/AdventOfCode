@@ -52,24 +52,134 @@ pub fn main() !u8 {
 }
 
 fn solveDay05(allocator: std.mem.Allocator, data: lines) !u64 {
-    const total: u64 = 0;
+    var parsedRules = try parseRules(allocator, data);
+    defer {
+        var it = parsedRules.rules.iterator();
+        while (it.next()) |entry| {
+            entry.value_ptr.deinit(allocator);
+        }
+        parsedRules.rules.deinit(allocator);
+    }
+
+    var i = parsedRules.line;
+    var total: u64 = 0;
+
+    while (i < data.len) {
+        // the values that we've already seen
+        var prev = Set{};
+        defer prev.deinit(allocator);
+
+        var isValid = true;
+        // std.debug.print("Checking data {s}\n", .{data[i]});
+        var it = std.mem.splitScalar(u8, data[i], ',');
+        while (it.next()) |val| {
+            // std.debug.print("  Got val: {s}\n", .{val});
+            const key = try std.fmt.parseInt(u8, val, 10);
+            // I call it "befores" because key must come before all of them
+            if (parsedRules.rules.get(key)) |befores| {
+                for (befores.keys()) |before| {
+                    if (prev.contains(before)) {
+                        // std.debug.print("    INVALID due to {d} exists before {d}\n", .{ before, key });
+                        isValid = false;
+                        break;
+                    }
+                }
+            }
+            try prev.put(allocator, key, {});
+        }
+
+        if (isValid) {
+            const middle: usize = prev.count() / 2;
+            total += prev.keys()[middle];
+            // std.debug.print("    VALID adding {d} to total, total is now {d}\n", .{ prev.keys()[middle], total });
+        }
+        i += 1;
+    }
 
     return total;
 }
 
-const Set = std.AutoHashMapUnmanaged(u64, void);
+test "day 05, part A" {
+    const data: [28]string = .{
+        "47|53",
+        "97|13",
+        "97|61",
+        "97|47",
+        "75|29",
+        "61|13",
+        "75|53",
+        "29|13",
+        "97|29",
+        "53|29",
+        "61|53",
+        "97|53",
+        "61|29",
+        "47|13",
+        "75|47",
+        "97|75",
+        "47|61",
+        "75|61",
+        "47|29",
+        "75|13",
+        "53|13",
+        "",
+        "75,47,61,53,29",
+        "97,61,53,29,13",
+        "75,29,13",
+        "75,97,47,61,53",
+        "61,13,29",
+        "97,13,75,29,47",
+    };
+
+    try std.testing.expectEqual(143, try solveDay05(std.testing.allocator, &data));
+}
+
+const Set = std.AutoArrayHashMapUnmanaged(u64, void);
+// The keys are the values that must come before the values, e.g.:
+//  {
+//    43: [12, 70],
+//    50: [43, 45],
+//  }
+//
+//  43 must come before 12 and 70
+//  50 must come before 43 and 45
 const Rules = std.AutoHashMapUnmanaged(u64, Set);
-fn parseRules(allocator: std.mem.Allocator, data: lines) !Rules {
-    var rules = Rules{};
-    for (lines) |line| {
+
+const ParsedRules = struct {
+    rules: Rules,
+    line: usize,
+};
+// Caller owns all the memory
+fn parseRules(allocator: std.mem.Allocator, data: lines) !ParsedRules {
+    var parsedRules = ParsedRules{
+        .rules = .{},
+        .line = 0,
+    };
+    for (data) |line| {
+        parsedRules.line += 1;
+        // std.debug.print("Got line #{d}: {s}\n", .{ parsedRules.line, line });
         if (std.mem.eql(u8, line, "")) {
             break;
         }
         var it = std.mem.splitScalar(u8, line, '|');
-        const key = try std.fmt.parseInt(u64, try it.next(), 10);
-        const before = try std.fmt.parseInt(u64, try it.next(), 10);
-        if (it.next()) {}
+        const key = try std.fmt.parseInt(u64, it.next().?, 10);
+        const before = try std.fmt.parseInt(u64, it.next().?, 10);
+        if (it.next() != null) {
+            std.debug.print("Expected each line to look like '42|69', instead found more than one '|'\n", .{});
+            return RuntimeError.TooMuchData;
+        }
+
+        if (parsedRules.rules.getPtr(key)) |befores| {
+            // This may be wasteful, since before may already exist. *shrug*
+            try befores.put(allocator, before, {});
+        } else {
+            var befores = Set{};
+            try befores.put(allocator, before, {});
+            try parsedRules.rules.put(allocator, key, befores);
+        }
     }
+
+    return parsedRules;
 }
 
 fn solveDay04(allocator: std.mem.Allocator, data: lines) !u64 {

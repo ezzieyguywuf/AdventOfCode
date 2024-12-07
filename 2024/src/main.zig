@@ -51,6 +51,27 @@ pub fn main() !u8 {
     return 0;
 }
 
+fn solveDay05(allocator: std.mem.Allocator, data: lines) !u64 {
+    const total: u64 = 0;
+
+    return total;
+}
+
+const Set = std.AutoHashMapUnmanaged(u64, void);
+const Rules = std.AutoHashMapUnmanaged(u64, Set);
+fn parseRules(allocator: std.mem.Allocator, data: lines) !Rules {
+    var rules = Rules{};
+    for (lines) |line| {
+        if (std.mem.eql(u8, line, "")) {
+            break;
+        }
+        var it = std.mem.splitScalar(u8, line, '|');
+        const key = try std.fmt.parseInt(u64, try it.next(), 10);
+        const before = try std.fmt.parseInt(u64, try it.next(), 10);
+        if (it.next()) {}
+    }
+}
+
 fn solveDay04(allocator: std.mem.Allocator, data: lines) !u64 {
     // (row, col) location of each X
     var xLocs = std.ArrayListUnmanaged([2]usize){};

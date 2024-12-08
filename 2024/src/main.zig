@@ -45,10 +45,8 @@ pub fn main() !u8 {
             std.debug.print("Solution, Day04, partB: {d}\n", .{solutionB});
         },
         5 => {
-            const solutionA = try solveDay05(allocator, problem.data);
-            std.debug.print("Solution, Day05, partA: {d}\n", .{solutionA});
-            // const solutionB = try solveDay04B(allocator, problem.data);
-            // std.debug.print("Solution, Day04, partB: {d}\n", .{solutionB});
+            const solution = try solveDay05(allocator, problem.data);
+            std.debug.print("Solution, Day05, partA: {d}\n", .{solution.partA});
         },
         else => {
             std.debug.print("I don't yet know how to solve day {d:02}\n", .{problem.day});
@@ -57,7 +55,12 @@ pub fn main() !u8 {
     return 0;
 }
 
-fn solveDay05(allocator: std.mem.Allocator, data: lines) !u64 {
+const Solution = struct {
+    partA: u64,
+    partB: u64,
+};
+
+fn solveDay05(allocator: std.mem.Allocator, data: lines) !Solution {
     var parsedRules = try parseRules(allocator, data);
     defer {
         var it = parsedRules.rules.iterator();
@@ -68,12 +71,22 @@ fn solveDay05(allocator: std.mem.Allocator, data: lines) !u64 {
     }
 
     var i = parsedRules.line;
-    var total: u64 = 0;
+    var solution = Solution{
+        .partA = 0,
+        .partB = 0,
+    };
+    var invalids = std.ArrayListUnmanaged([]u64){};
+    defer {
+        for (invalids.items) |invalid| {
+            allocator.free(invalid);
+        }
+        invalids.deinit(allocator);
+    }
 
     while (i < data.len) {
-        // the values that we've already seen
-        var prev = Set{};
-        defer prev.deinit(allocator);
+        // the values that we've already seen. This memory is owned by the
+        // invalids ArrayList defined in the outer scope of this function.
+        var prev = OrderedSet{};
 
         var isValid = true;
         // std.debug.print("Checking data {s}\n", .{data[i]});
@@ -87,7 +100,9 @@ fn solveDay05(allocator: std.mem.Allocator, data: lines) !u64 {
                     if (prev.contains(before)) {
                         // std.debug.print("    INVALID due to {d} exists before {d}\n", .{ before, key });
                         isValid = false;
-                        break;
+                        // keep going, since we need the fully converted line
+                        // for filling in the invalids ArrayList
+                        // break;
                     }
                 }
             }
@@ -96,13 +111,29 @@ fn solveDay05(allocator: std.mem.Allocator, data: lines) !u64 {
 
         if (isValid) {
             const middle: usize = prev.count() / 2;
-            total += prev.keys()[middle];
+            solution.partA += prev.keys()[middle];
             // std.debug.print("    VALID adding {d} to total, total is now {d}\n", .{ prev.keys()[middle], total });
+        } else {
+            try invalids.append(allocator, prev.keys());
         }
         i += 1;
     }
 
-    return total;
+    for (invalids.items) |sorted| {
+        std.mem.sort(u64, sorted, parsedRules.rules, day05Cmp);
+        const middle: usize = sorted.len / 2;
+        solution.partB += sorted[middle];
+    }
+
+    return solution;
+}
+
+fn day05Cmp(rules: Rules, left: u64, right: u64) bool {
+    if (rules.get(left)) |entry| {
+        return entry.contains(right);
+    }
+
+    return false;
 }
 
 test "day 05, part A" {
@@ -137,10 +168,12 @@ test "day 05, part A" {
         "97,13,75,29,47",
     };
 
-    try std.testing.expectEqual(143, try solveDay05(std.testing.allocator, &data));
+    const solution = try solveDay05(std.testing.allocator, &data);
+    try std.testing.expectEqual(143, solution.partA);
+    try std.testing.expectEqual(123, solution.partB);
 }
 
-const Set = std.AutoArrayHashMapUnmanaged(u64, void);
+const OrderedSet = std.AutoArrayHashMapUnmanaged(u64, void);
 // The keys are the values that must come before the values, e.g.:
 //  {
 //    43: [12, 70],
@@ -149,7 +182,7 @@ const Set = std.AutoArrayHashMapUnmanaged(u64, void);
 //
 //  43 must come before 12 and 70
 //  50 must come before 43 and 45
-const Rules = std.AutoHashMapUnmanaged(u64, Set);
+const Rules = std.AutoHashMapUnmanaged(u64, OrderedSet);
 
 const ParsedRules = struct {
     rules: Rules,
@@ -179,7 +212,7 @@ fn parseRules(allocator: std.mem.Allocator, data: lines) !ParsedRules {
             // This may be wasteful, since before may already exist. *shrug*
             try befores.put(allocator, before, {});
         } else {
-            var befores = Set{};
+            var befores = OrderedSet{};
             try befores.put(allocator, before, {});
             try parsedRules.rules.put(allocator, key, befores);
         }

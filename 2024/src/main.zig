@@ -47,6 +47,7 @@ pub fn main() !u8 {
         5 => {
             const solution = try solveDay05(allocator, problem.data);
             std.debug.print("Solution, Day05, partA: {d}\n", .{solution.partA});
+            std.debug.print("Solution, Day05, partB: {d}\n", .{solution.partB});
         },
         else => {
             std.debug.print("I don't yet know how to solve day {d:02}\n", .{problem.day});
@@ -75,10 +76,10 @@ fn solveDay05(allocator: std.mem.Allocator, data: lines) !Solution {
         .partA = 0,
         .partB = 0,
     };
-    var invalids = std.ArrayListUnmanaged([]u64){};
+    var invalids = std.ArrayListUnmanaged(OrderedSet){};
     defer {
-        for (invalids.items) |invalid| {
-            allocator.free(invalid);
+        for (invalids.items) |*invalid| {
+            invalid.deinit(allocator);
         }
         invalids.deinit(allocator);
     }
@@ -87,6 +88,7 @@ fn solveDay05(allocator: std.mem.Allocator, data: lines) !Solution {
         // the values that we've already seen. This memory is owned by the
         // invalids ArrayList defined in the outer scope of this function.
         var prev = OrderedSet{};
+        errdefer prev.deinit(allocator);
 
         var isValid = true;
         // std.debug.print("Checking data {s}\n", .{data[i]});
@@ -112,17 +114,18 @@ fn solveDay05(allocator: std.mem.Allocator, data: lines) !Solution {
         if (isValid) {
             const middle: usize = prev.count() / 2;
             solution.partA += prev.keys()[middle];
+            prev.deinit(allocator);
             // std.debug.print("    VALID adding {d} to total, total is now {d}\n", .{ prev.keys()[middle], total });
         } else {
-            try invalids.append(allocator, prev.keys());
+            try invalids.append(allocator, prev);
         }
         i += 1;
     }
 
-    for (invalids.items) |sorted| {
-        std.mem.sort(u64, sorted, parsedRules.rules, day05Cmp);
-        const middle: usize = sorted.len / 2;
-        solution.partB += sorted[middle];
+    for (invalids.items) |*sorted| {
+        std.mem.sort(u64, sorted.keys(), parsedRules.rules, day05Cmp);
+        const middle: usize = sorted.keys().len / 2;
+        solution.partB += sorted.keys()[middle];
     }
 
     return solution;

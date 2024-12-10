@@ -49,11 +49,119 @@ pub fn main() !u8 {
             std.debug.print("Solution, Day05, partA: {d}\n", .{solution.partA});
             std.debug.print("Solution, Day05, partB: {d}\n", .{solution.partB});
         },
+        6 => {
+            // const solution = try solveDay05(allocator, problem.data);
+            std.debug.print("Solution, Day06, partA: {d}\n", .{try solveDay06(allocator, problem.data)});
+            // std.debug.print("Solution, Day06, partB: {d}\n", .{solution.partB});
+        },
         else => {
             std.debug.print("I don't yet know how to solve day {d:02}\n", .{problem.day});
         },
     }
     return 0;
+}
+
+fn solveDay06(allocator: std.mem.Allocator, data: lines) !u64 {
+    var dir: ?Direction = null;
+    var row: usize = 0;
+    var col: usize = 0;
+
+    outer: for (data, 0..) |line, curRow| {
+        row = curRow;
+        // std.debug.print("row: {d}, line: {s}\n", .{ row, line });
+        for (line, 0..) |char, curCol| {
+            // std.debug.print("  dir: {?any}, col: {d}, char: {c}\n", .{ dir, col, char });
+            col = curCol;
+            switch (char) {
+                '^' => dir = Direction.Up,
+                '>' => dir = Direction.Right,
+                'v' => dir = Direction.Down,
+                '<' => dir = Direction.Left,
+                else => continue,
+            }
+            if (dir != null) {
+                break :outer;
+            }
+        }
+    }
+
+    var total: u64 = 0;
+    var visited = std.AutoHashMapUnmanaged(Coord, void){};
+    defer visited.deinit(allocator);
+    while (true) {
+        const coord = Coord{
+            .row = row,
+            .col = col,
+        };
+        if (!visited.contains(coord)) {
+            total += 1;
+            try visited.put(allocator, coord, {});
+        }
+        // std.debug.print("row: {d}, col: {d}, total: {d}, dir: {?s}\n", .{ row, col, total, std.enums.tagName(Direction, dir.?) });
+        switch (dir.?) {
+            Direction.Up => {
+                if (row == 0) {
+                    // std.debug.print("  breaking, row less than 0\n", .{});
+                    break;
+                }
+                row -= 1;
+            },
+            Direction.Right => col += 1,
+            Direction.Down => row += 1,
+            Direction.Left => {
+                if (col == 0) {
+                    // std.debug.print("  breaking, col less than 0\n", .{});
+                    break;
+                }
+                col -= 1;
+            },
+        }
+        // std.debug.print("  new dir: {?s}\n", .{std.enums.tagName(Direction, dir.?)});
+        if (row >= data.len or col >= data[0].len) {
+            // std.debug.print("  breaking, row > data.len: {any}, col >= data[0].len: {any}\n", .{ row >= data.len, col >= data[0].len });
+            break;
+        }
+        const char = data[row][col];
+        if (char == '#') {
+            switch (dir.?) {
+                Direction.Up => {
+                    row += 1;
+                    dir = Direction.Right;
+                },
+                Direction.Right => {
+                    col -= 1;
+                    dir = Direction.Down;
+                },
+                Direction.Down => {
+                    row -= 1;
+                    dir = Direction.Left;
+                },
+                Direction.Left => {
+                    col += 1;
+                    dir = Direction.Up;
+                },
+            }
+        }
+        // std.debug.print("  newRow: {d}, newCol: {d}, newDir: {?s}\n", .{ row, col, std.enums.tagName(Direction, dir.?) });
+    }
+
+    return total;
+}
+
+test "Day 06, part A" {
+    const data: [10]string = .{
+        "....#.....",
+        ".........#",
+        "..........",
+        "..#.......",
+        ".......#..",
+        "..........",
+        ".#..^.....",
+        "........#.",
+        "#.........",
+        "......#...",
+    };
+    try std.testing.expectEqual(41, solveDay06(std.testing.allocator, &data));
 }
 
 const Solution = struct {

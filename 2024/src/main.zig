@@ -58,7 +58,8 @@ pub fn main() !u8 {
             std.debug.print("I skipped this day, b/c I could only thing of a brute-force solution (for now)\n", .{});
         },
         8 => {
-            std.debug.print("Solution, Day08, partA: {d}\n", .{try solveDay08(allocator, problem.data)});
+            std.debug.print("Solution, Day08, partA: {d}\n", .{try solveDay08(allocator, problem.data, false)});
+            std.debug.print("Solution, Day08, partB: {d}\n", .{try solveDay08(allocator, problem.data, true)});
         },
         else => {
             std.debug.print("I don't yet know how to solve day {d:02}\n", .{problem.day});
@@ -67,7 +68,7 @@ pub fn main() !u8 {
     return 0;
 }
 
-fn solveDay08(allocator: std.mem.Allocator, data: lines) !u64 {
+fn solveDay08(allocator: std.mem.Allocator, data: lines, checkMultiples: bool) !u64 {
     var antenna = std.AutoHashMapUnmanaged(u8, std.ArrayListUnmanaged(CoordSigned)){};
     defer {
         var it = antenna.iterator();
@@ -125,15 +126,31 @@ fn solveDay08(allocator: std.mem.Allocator, data: lines) !u64 {
                 const deltaRow = second.row - first.row;
                 const deltaColumn = second.col - first.col;
 
-                const antinode = CoordSigned{
-                    .row = first.row - deltaRow,
-                    .col = first.col - deltaColumn,
-                };
+                var antinodeMultiple: i64 = 1;
 
-                // std.debug.print("  first: {any}\n  second: {any}\n    deltaRow: {any}, deltaCol: {any}\n", .{ first, second, deltaRow, deltaColumn });
-                if (antinode.row >= 0 and antinode.row < data.len and antinode.col >= 0 and antinode.col < data[0].len) {
-                    // std.debug.print("      added: {any}\n", .{antinode});
-                    try locations.put(allocator, antinode, {});
+                if (checkMultiples) {
+                    try locations.put(allocator, first, {});
+                    try locations.put(allocator, second, {});
+                }
+                while (true) {
+                    const antinode = CoordSigned{
+                        .row = first.row - deltaRow * antinodeMultiple,
+                        .col = first.col - deltaColumn * antinodeMultiple,
+                    };
+
+                    // std.debug.print("  first: {any}\n  second: {any}\n    deltaRow: {any}, deltaCol: {any}\n", .{ first, second, deltaRow, deltaColumn });
+                    if (antinode.row >= 0 and antinode.row < data.len and antinode.col >= 0 and antinode.col < data[0].len) {
+                        // std.debug.print("      added: {any}\n", .{antinode});
+                        try locations.put(allocator, antinode, {});
+                    } else {
+                        break;
+                    }
+
+                    if (!checkMultiples) {
+                        break;
+                    }
+
+                    antinodeMultiple += 1;
                 }
                 j += 1;
             }
@@ -159,7 +176,8 @@ test "day 08, part A" {
         "............",
         "............",
     };
-    try std.testing.expectEqual(14, solveDay08(std.testing.allocator, &data));
+    try std.testing.expectEqual(14, solveDay08(std.testing.allocator, &data, false));
+    try std.testing.expectEqual(34, solveDay08(std.testing.allocator, &data, true));
 }
 
 fn solveDay06(allocator: std.mem.Allocator, data: lines) !u64 {

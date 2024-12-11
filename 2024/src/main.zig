@@ -61,11 +61,90 @@ pub fn main() !u8 {
             std.debug.print("Solution, Day08, partA: {d}\n", .{try solveDay08(allocator, problem.data, false)});
             std.debug.print("Solution, Day08, partB: {d}\n", .{try solveDay08(allocator, problem.data, true)});
         },
+        9 => {
+            std.debug.print("Solution, Day08, partA: {d}\n", .{try solveDay09(problem.data)});
+            // std.debug.print("Solution, Day08, partB: {d}\n", .{try solveDay08(allocator, problem.data, true)});
+        },
         else => {
             std.debug.print("I don't yet know how to solve day {d:02}\n", .{problem.day});
         },
     }
     return 0;
+}
+
+fn solveDay09(data: lines) !u64 {
+    var total: u64 = 0;
+    if (data.len > 1) {
+        std.debug.print("Expected only a single line of data, got {d}\n", .{data.len});
+        return RuntimeError.TooMuchData;
+    }
+
+    var blockID: usize = 0;
+    var front: usize = 0;
+    var back: usize = data[0].len - 1;
+    var backBlockID: usize = back / 2;
+    var backNBlocks: usize = try std.fmt.parseInt(u64, &.{data[0][back]}, 10);
+    std.debug.print("wolfgang\n", .{});
+    var finalFrontIndex: usize = 0;
+    var finalBackIndex: usize = 0;
+    for (data[0]) |char| {
+        const val: u64 = try std.fmt.parseInt(u64, &.{char}, 10);
+        finalBackIndex += val;
+    }
+    outer: for (data[0], 0..) |char, i| {
+        const freeSpace = i % 2 != 0;
+        if (freeSpace) {
+            var nFreeSpace = try std.fmt.parseInt(u64, &.{char}, 10);
+            while (nFreeSpace > 0) {
+                if (backNBlocks == 0) {
+                    back -= 1;
+                    const backFreeBlocks = try std.fmt.parseInt(u64, &.{data[0][back]}, 10);
+                    finalBackIndex -= backFreeBlocks;
+                    // std.debug.print("  finalBackIndex: {d}, finalFrontIndex: {d}\n", .{ finalBackIndex, finalFrontIndex });
+
+                    back -= 1;
+                    backNBlocks = try std.fmt.parseInt(u64, &.{data[0][back]}, 10);
+                    // std.debug.print("  backNBlocks: {d}\n", .{backNBlocks});
+                    backBlockID -= 1;
+                }
+
+                while (backNBlocks > 0 and nFreeSpace > 0) {
+                    total += front * backBlockID;
+                    front += 1;
+                    backNBlocks -= 1;
+                    nFreeSpace -= 1;
+                    // one each for the free space from the front and the number
+                    // from the back
+                    finalBackIndex -= 2;
+                    // std.debug.print("  total: {d}, backBlockID: {d}, finalBackIndex: {d}, finalFrontIndex: {d}\n", .{ total, backBlockID, finalBackIndex, finalFrontIndex });
+                    if (finalBackIndex <= finalFrontIndex) {
+                        break :outer;
+                    }
+                }
+            }
+        } else {
+            var nBlocks = try std.fmt.parseInt(u64, &.{char}, 10);
+            while (nBlocks > 0) {
+                total += front * blockID;
+                // std.debug.print("  total: {d}, blockID: {d}, finalBackIndex: {d}, finalFrontIndex: {d}\n", .{ total, blockID, finalBackIndex, finalFrontIndex });
+                front += 1;
+                nBlocks -= 1;
+                finalFrontIndex += 1;
+                if (finalBackIndex <= finalFrontIndex) {
+                    break :outer;
+                }
+            }
+            blockID += 1;
+        }
+    }
+
+    return total;
+}
+
+test "day 09, part A" {
+    const data: [1]string = .{"2333133121414131402"};
+
+    try std.testing.expectEqual(1928, solveDay09(&data));
 }
 
 fn solveDay08(allocator: std.mem.Allocator, data: lines, checkMultiples: bool) !u64 {

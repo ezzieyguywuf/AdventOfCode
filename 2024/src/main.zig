@@ -54,11 +54,112 @@ pub fn main() !u8 {
             std.debug.print("Solution, Day06, partA: {d}\n", .{try solveDay06(allocator, problem.data)});
             // std.debug.print("Solution, Day06, partB: {d}\n", .{solution.partB});
         },
+        7 => {
+            std.debug.print("I skipped this day, b/c I could only thing of a brute-force solution (for now)\n", .{});
+        },
+        8 => {
+            std.debug.print("Solution, Day08, partA: {d}\n", .{try solveDay08(allocator, problem.data)});
+        },
         else => {
             std.debug.print("I don't yet know how to solve day {d:02}\n", .{problem.day});
         },
     }
     return 0;
+}
+
+fn solveDay08(allocator: std.mem.Allocator, data: lines) !u64 {
+    var antenna = std.AutoHashMapUnmanaged(u8, std.ArrayListUnmanaged(CoordSigned)){};
+    defer {
+        var it = antenna.iterator();
+        while (it.next()) |entry| {
+            // for (entry.value_ptr.items) |*coord| {
+            //     allocator.free(coord);
+            // }
+            entry.value_ptr.deinit(allocator);
+        }
+        antenna.deinit(allocator);
+    }
+
+    for (data, 0..) |line, row| {
+        for (line, 0..) |char, col| {
+            const key = switch (char) {
+                'A'...'Z', 'a'...'z', '0'...'9' => char,
+                else => null,
+            };
+            if (key == null) {
+                continue;
+            }
+            const coord = CoordSigned{
+                .row = @intCast(row),
+                .col = @intCast(col),
+            };
+
+            if (antenna.getPtr(char)) |coords| {
+                try coords.append(allocator, coord);
+            } else {
+                var coords = std.ArrayListUnmanaged(CoordSigned){};
+                errdefer coords.deinit(allocator);
+
+                try coords.append(allocator, coord);
+                try antenna.put(allocator, key.?, coords);
+            }
+        }
+    }
+
+    var locations = std.AutoArrayHashMapUnmanaged(CoordSigned, void){};
+    defer locations.deinit(allocator);
+    var it = antenna.iterator();
+    while (it.next()) |entry| {
+        // std.debug.print("Running for key: {c}\n", .{entry.key_ptr.*});
+        var i: usize = 0;
+        while (i < entry.value_ptr.items.len) {
+            var j: usize = 0;
+            while (j < entry.value_ptr.items.len) {
+                if (i == j) {
+                    j += 1;
+                    continue;
+                }
+
+                const first: CoordSigned = entry.value_ptr.items[i];
+                const second: CoordSigned = entry.value_ptr.items[j];
+                const deltaRow = second.row - first.row;
+                const deltaColumn = second.col - first.col;
+
+                const antinode = CoordSigned{
+                    .row = first.row - deltaRow,
+                    .col = first.col - deltaColumn,
+                };
+
+                // std.debug.print("  first: {any}\n  second: {any}\n    deltaRow: {any}, deltaCol: {any}\n", .{ first, second, deltaRow, deltaColumn });
+                if (antinode.row >= 0 and antinode.row < data.len and antinode.col >= 0 and antinode.col < data[0].len) {
+                    // std.debug.print("      added: {any}\n", .{antinode});
+                    try locations.put(allocator, antinode, {});
+                }
+                j += 1;
+            }
+            i += 1;
+        }
+    }
+
+    return locations.count();
+}
+
+test "day 08, part A" {
+    const data: [12]string = .{
+        "............",
+        "........0...",
+        ".....0......",
+        ".......0....",
+        "....0.......",
+        "......A.....",
+        "............",
+        "............",
+        "........A...",
+        ".........A..",
+        "............",
+        "............",
+    };
+    try std.testing.expectEqual(14, solveDay08(std.testing.allocator, &data));
 }
 
 fn solveDay06(allocator: std.mem.Allocator, data: lines) !u64 {
@@ -587,6 +688,11 @@ fn searchForMas(coord: Coord, data: lines, dir: Diagonal) bool {
 const Coord = struct {
     row: usize,
     col: usize,
+};
+
+const CoordSigned = struct {
+    row: i64,
+    col: i64,
 };
 
 const Mas = struct {

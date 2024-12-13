@@ -101,6 +101,9 @@ fn solveDay09(data: lines) !u64 {
                     const backFreeBlocks = try std.fmt.parseInt(u64, &.{data[0][back]}, 10);
                     finalBackIndex -= backFreeBlocks;
                     // std.debug.print("  finalBackIndex: {d}, finalFrontIndex: {d}\n", .{ finalBackIndex, finalFrontIndex });
+                    if (finalBackIndex <= finalFrontIndex) {
+                        break :outer;
+                    }
 
                     back -= 1;
                     backNBlocks = try std.fmt.parseInt(u64, &.{data[0][back]}, 10);
